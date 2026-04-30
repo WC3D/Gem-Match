@@ -336,7 +336,7 @@
                     if (toRemove.some(m => m.r === r && m.c === c)) {
                         empty++;
                     } else if (empty > 0) {
-                        state.grid[r + empty][c] = state.grid[r][c];
+                        state.grid[r + empty][c] = { ...state.grid[r][c] };
                         state.grid[r + empty][c].offsetY = -empty;
                     }
                 }
@@ -355,7 +355,7 @@
                     state.grid[i][c] = {
                         type: type,
                         power: POWER_NONE,
-                        offsetY: -empty - i,
+                        offsetY: -empty,
                         scale: 1,
                         alpha: 1
                     };
@@ -433,12 +433,12 @@
                     for (let r = GRID_ROWS - 1; r >= 0; r--) {
                         if (toRemove.some(m => m.r === r && m.c === c)) empty++;
                         else if (empty > 0) {
-                            state.grid[r + empty][c] = state.grid[r][c];
+                            state.grid[r + empty][c] = { ...state.grid[r][c] };
                             state.grid[r + empty][c].offsetY = -empty;
                         }
                     }
                     for (let i = 0; i < empty; i++) {
-                        state.grid[i][c] = { type: Math.floor(Math.random() * GEM_TYPES), power: POWER_NONE, offsetY: -empty - i, scale: 1, alpha: 1 };
+                        state.grid[i][c] = { type: Math.floor(Math.random() * GEM_TYPES), power: POWER_NONE, offsetY: -empty, scale: 1, alpha: 1 };
                     }
                 }
 
