@@ -648,6 +648,7 @@
         window.addEventListener('touchend', onPointerUp);
 
         startBtn.addEventListener('click', () => {
+            startBtn.blur();
             if (startBtn.innerText === "CONTINUE") {
                 overlay.style.display = "none";
                 state.gameStarted = true;
@@ -661,6 +662,7 @@
         });
 
         document.getElementById('tutorial-ok-btn').addEventListener('click', () => {
+            document.getElementById('tutorial-ok-btn').blur();
             document.getElementById('tutorial-box').classList.remove('show');
             state.gameStarted = true;
         });
@@ -668,6 +670,7 @@
         // 💡 18. GIVING A HINT
         // This function looks for a match and highlights the gems!
         hintBtn.addEventListener('click', async () => {
+            hintBtn.blur();
             if (state.isAnimating || !state.gameStarted) return;
             
             // Look for a possible match
@@ -734,6 +737,7 @@
         // Just like old games, this creates a secret string of letters and numbers
         // that remembers what level you are on and your score!
         saveBtn.addEventListener('click', () => {
+            saveBtn.blur();
             if (!state.gameStarted) return;
             // We combine the stats with a dash in between
             const secretData = `${state.level}-${state.score}-${state.moves}-${state.goal}`;
@@ -748,6 +752,7 @@
         });
 
         loadBtn.addEventListener('click', () => {
+            loadBtn.blur();
             const code = loadInput.value.trim();
             if (!code) return;
             try {
