@@ -14,6 +14,14 @@
     <title>Gem Match - Power Up Edition</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
+        /* 
+         ================================================================
+         🎨 CSS SECTION: The "Paint and Decorations"
+         This part makes everything look pretty! We tell the computer 
+         what colors to use, how big things should be, and where to put them.
+         It's like dressing up our game board in cool clothes!
+         ================================================================ 
+        */
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
 
         body {
@@ -106,14 +114,17 @@
 
         #message-box {
             position: absolute;
-            top: 20%;
+            top: 50%;
             left: 50%;
-            transform: translateX(-50%);
-            background: white;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 255, 255, 0.95);
             color: #0f172a;
-            padding: 0.75rem 1.5rem;
-            border-radius: 8px;
-            font-weight: bold;
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            font-size: 2.5rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5), 0 0 20px rgba(255,255,255,0.5);
             pointer-events: none;
             opacity: 0;
             transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
@@ -124,6 +135,14 @@
 
 <body>
 
+    <!-- 
+      ================================================================
+      🏗️ HTML SECTION: The "Skeleton" of our Game
+      This part builds the visible pieces of our game, like the score board, 
+      the screen where gems show up (canvas), and the starting menu.
+      Think of this like building the game board out of cardboard before we paint it!
+      ================================================================ 
+    -->
     <div id="game-container">
         <div class="ui-panel">
             <div class="stat-card">
@@ -149,6 +168,15 @@
             </div>
         </div>
 
+        <div class="flex flex-col gap-3 mt-4 w-full max-w-md px-4 z-10">
+            <button id="hint-btn" class="w-full px-6 py-2 bg-slate-800 text-white rounded-full font-bold border border-slate-600 hover:bg-slate-700 transition-colors shadow-lg">💡 Hint</button>
+            <div class="flex gap-2 w-full">
+                <button id="save-btn" class="flex-1 px-2 py-2 bg-emerald-700 text-white rounded-lg font-bold border border-emerald-500 hover:bg-emerald-600 transition-colors text-sm">Save Code</button>
+                <input id="load-input" type="text" placeholder="Paste Code..." class="flex-[2] min-w-0 px-2 py-2 bg-slate-800 text-white rounded-lg border border-slate-600 text-center font-mono text-xs focus:outline-none focus:border-indigo-500" />
+                <button id="load-btn" class="flex-1 px-2 py-2 bg-indigo-700 text-white rounded-lg font-bold border border-indigo-500 hover:bg-indigo-600 transition-colors text-sm">Load Code</button>
+            </div>
+        </div>
+
         <div id="message-box">READY!</div>
 
         <div id="overlay">
@@ -162,6 +190,18 @@
     </div>
 
     <script>
+        /* 
+         ================================================================
+         🧠 JAVASCRIPT SECTION: The "Brain" of our Game
+         This is where the magic happens! This code tells the game how to work.
+         It keeps track of the score, makes the gems fall, checks if you got a match,
+         and handles what happens when you click or swipe on the screen.
+         ================================================================ 
+        */
+
+        // 🛠️ 1. SETTING UP THE GAME PIECES
+        // Here we grab the different parts of our HTML (like the score text) 
+        // so we can change them later using code.
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         const scoreEl = document.getElementById('score-val');
@@ -171,17 +211,27 @@
         const overlay = document.getElementById('overlay');
         const startBtn = document.getElementById('start-btn');
         const messageBox = document.getElementById('message-box');
+        const hintBtn = document.getElementById('hint-btn');
+        const saveBtn = document.getElementById('save-btn');
+        const loadBtn = document.getElementById('load-btn');
+        const loadInput = document.getElementById('load-input');
 
+        // 📏 2. GAME RULES AND SETTINGS
+        // We decide how big the game board is, how many different gems there are,
+        // and what colors they should be!
         const GRID_COLS = 10;
         const GRID_ROWS = 8;
         const GEM_TYPES = 6;
         const COLORS = ['#ef4444', '#22c55e', '#3b82f6', '#eab308', '#a855f7', '#f97316'];
 
-        // Power-up Types
+        // 💥 POWER-UPS! What happens when you match 4 or 5 gems!
         const POWER_NONE = 0;
         const POWER_BOMB = 1; // 4 Match
         const POWER_WILD = 2; // 5 Match
 
+        // 🎒 3. THE GAME'S MEMORY (STATE)
+        // This is a big list of everything the game needs to remember while you play,
+        // like your score, what level you are on, and where all the gems are right now.
         let state = {
             grid: [],
             score: 0,
@@ -198,6 +248,10 @@
             gameStarted: false
         };
 
+        // 🎲 4. BUILDING THE STARTING BOARD
+        // When the game starts, we need to fill the empty board with random gems.
+        // This function puts a gem in every row and column, but makes sure 
+        // we don't accidentally start with any 3-in-a-row matches!
         function initGrid() {
             state.grid = [];
             for (let r = 0; r < GRID_ROWS; r++) {
@@ -224,6 +278,9 @@
             animateIntro();
         }
 
+        // 🎬 5. THE OPENING ANIMATION
+        // This makes all the gems fall from the top of the screen when the game first starts.
+        // It looks super cool, like they are raining down!
         async function animateIntro() {
             state.isAnimating = true;
             let finished = false;
@@ -244,19 +301,25 @@
             state.isAnimating = false;
         }
 
+        // 📱 6. MAKING IT FIT ANY SCREEN
+        // Whether you play on a giant computer or a tiny phone, this function
+        // stretches and squishes the game board so it fits perfectly!
         function resize() {
             const container = document.getElementById('game-container');
             const availableHeight = container.clientHeight - 250;
             const availableWidth = container.clientWidth * 0.95;
-            
+
             state.cellSize = Math.min(availableWidth / GRID_COLS, availableHeight / GRID_ROWS);
-            
+
             canvas.width = state.cellSize * GRID_COLS;
             canvas.height = state.cellSize * GRID_ROWS;
             state.width = canvas.width;
             state.height = canvas.height;
         }
 
+        // 🖌️ 7. DRAWING A SINGLE GEM
+        // This is a big set of instructions telling the computer exactly how to draw
+        // a circle, square, triangle, or star, and how to paint it with a shiny color!
         function drawGem(r, c, type, power, xOffset = 0, yOffset = 0, scale = 1, alpha = 1, isPulsing = false) {
             const x = (c + xOffset) * state.cellSize + state.cellSize / 2;
             const y = (r + yOffset) * state.cellSize + state.cellSize / 2;
@@ -327,6 +390,9 @@
             ctx.restore();
         }
 
+        // 🔍 8. THE MATCH DETECTIVE
+        // This function looks at the whole board, row by row and column by column.
+        // It's looking for 3, 4, or 5 gems of the same color touching each other!
         function findMatches() {
             let sets = [];
             // Horizontal
@@ -364,6 +430,9 @@
             return sets;
         }
 
+        // 💥 9. DESTROYING MATCHES & DROPPING NEW GEMS
+        // If the "Match Detective" found matches, this function deletes those gems,
+        // adds points to your score, and drops new gems from the ceiling to fill the holes!
         async function handleMatches() {
             let sets = findMatches();
             if (sets.length === 0) {
@@ -474,6 +543,9 @@
             handleMatches();
         }
 
+        // ↔️ 10. SWAPPING TWO GEMS
+        // When you swipe your finger, this function tries to swap the gem you touched
+        // with the one next to it. If it doesn't make a match, it swaps them right back!
         async function swapGems(r1, c1, r2, c2) {
             state.isAnimating = true;
             const gem1 = state.grid[r1][c1];
@@ -566,6 +638,8 @@
             }
         }
 
+        // ✨ 11. SPARKLE EXPLOSIONS
+        // This creates those tiny little dots that fly away when a gem gets destroyed.
         function createParticles(x, y, color) {
             for (let i = 0; i < 12; i++) {
                 state.particles.push({
@@ -578,6 +652,8 @@
             }
         }
 
+        // 🏆 12. KEEPING SCORE AND LEVELING UP
+        // Gives you points! If you get enough points, you move to the next level!
         function updateScore(pts) {
             state.score += pts;
             scoreEl.innerText = state.score;
@@ -588,18 +664,25 @@
             }
         }
 
+        // 💬 13. POP-UP MESSAGES
+        // Shows words on the screen quickly, like "LEVEL UP!" or "WILDCARD!"
         function showMessage(txt) {
             messageBox.innerText = txt;
             messageBox.style.opacity = "1";
             setTimeout(() => messageBox.style.opacity = "0", 1200);
         }
 
+        // 🏁 14. GAME OVER
+        // Oh no! You ran out of moves. This shows the game over screen.
         function endGame() {
             document.getElementById('overlay-title').innerText = "GAME OVER";
             startBtn.innerText = "RESTART";
             overlay.style.display = "flex";
         }
 
+        // 👇 15. PLAYER CONTROLS (MOUSE AND TOUCH)
+        // These next functions figure out exactly where your mouse or finger is
+        // so we know which gem you are trying to touch or swipe!
         function getCellFromCoords(x, y) {
             const rect = canvas.getBoundingClientRect();
             const c = Math.floor((x - rect.left) / state.cellSize);
@@ -666,8 +749,128 @@
             initGrid();
         });
 
+        // 💡 18. GIVING A HINT
+        // This function looks for a match and highlights the gems!
+        hintBtn.addEventListener('click', async () => {
+            if (state.isAnimating || !state.gameStarted) return;
+            
+            // Look for a possible match
+            for (let r = 0; r < GRID_ROWS; r++) {
+                for (let c = 0; c < GRID_COLS; c++) {
+                    // Try horizontal swap
+                    if (c < GRID_COLS - 1) {
+                        let t = state.grid[r][c].type;
+                        let p = state.grid[r][c].power;
+                        state.grid[r][c].type = state.grid[r][c+1].type;
+                        state.grid[r][c].power = state.grid[r][c+1].power;
+                        state.grid[r][c+1].type = t;
+                        state.grid[r][c+1].power = p;
+                        
+                        let matches = findMatches();
+                        
+                        state.grid[r][c+1].type = state.grid[r][c].type;
+                        state.grid[r][c+1].power = state.grid[r][c].power;
+                        state.grid[r][c].type = t;
+                        state.grid[r][c].power = p;
+                        
+                        if (matches.length > 0) {
+                            state.grid[r][c].isHint = true;
+                            state.grid[r][c+1].isHint = true;
+                            setTimeout(() => {
+                                if (state.grid[r] && state.grid[r][c]) state.grid[r][c].isHint = false;
+                                if (state.grid[r] && state.grid[r][c+1]) state.grid[r][c+1].isHint = false;
+                            }, 1000);
+                            return;
+                        }
+                    }
+                    // Try vertical swap
+                    if (r < GRID_ROWS - 1) {
+                        let t = state.grid[r][c].type;
+                        let p = state.grid[r][c].power;
+                        state.grid[r][c].type = state.grid[r+1][c].type;
+                        state.grid[r][c].power = state.grid[r+1][c].power;
+                        state.grid[r+1][c].type = t;
+                        state.grid[r+1][c].power = p;
+                        
+                        let matches = findMatches();
+                        
+                        state.grid[r+1][c].type = state.grid[r][c].type;
+                        state.grid[r+1][c].power = state.grid[r][c].power;
+                        state.grid[r][c].type = t;
+                        state.grid[r][c].power = p;
+                        
+                        if (matches.length > 0) {
+                            state.grid[r][c].isHint = true;
+                            state.grid[r+1][c].isHint = true;
+                            setTimeout(() => {
+                                if (state.grid[r] && state.grid[r][c]) state.grid[r][c].isHint = false;
+                                if (state.grid[r+1] && state.grid[r+1][c]) state.grid[r+1][c].isHint = false;
+                            }, 1000);
+                            return;
+                        }
+                    }
+                }
+            }
+            showMessage("NO MOVES!");
+        });
+
+        // 💾 19. SAVE AND LOAD CODES
+        // Just like old games, this creates a secret string of letters and numbers
+        // that remembers what level you are on and your score!
+        saveBtn.addEventListener('click', () => {
+            if (!state.gameStarted) return;
+            // We combine the stats with a dash in between
+            const secretData = `${state.level}-${state.score}-${state.moves}-${state.goal}`;
+            // btoa turns our text into a Base64 "secret code"
+            const code = btoa(secretData);
+            loadInput.value = code;
+            showMessage("CODE COPIED!");
+            // Also put it in the clipboard if possible
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(code).catch(err => {});
+            }
+        });
+
+        loadBtn.addEventListener('click', () => {
+            const code = loadInput.value.trim();
+            if (!code) return;
+            try {
+                // atob translates the secret code back into our text
+                const secretData = atob(code);
+                const parts = secretData.split('-');
+                if (parts.length === 4) {
+                    state.level = parseInt(parts[0]);
+                    state.score = parseInt(parts[1]);
+                    state.moves = parseInt(parts[2]);
+                    state.goal = parseInt(parts[3]);
+                    
+                    // Update the screen
+                    levelEl.innerText = state.level;
+                    scoreEl.innerText = state.score;
+                    movesEl.innerText = state.moves;
+                    goalEl.innerText = state.goal;
+                    
+                    state.gameStarted = true;
+                    overlay.style.display = "none";
+                    
+                    // Generate a new board for this level
+                    initGrid();
+                    showMessage("GAME LOADED!");
+                    loadInput.value = "";
+                } else {
+                    showMessage("BAD CODE!");
+                }
+            } catch (e) {
+                showMessage("BAD CODE!");
+            }
+        });
+
         window.addEventListener('resize', resize);
 
+        // 🎥 16. THE MOVIE PROJECTOR
+        // Just like a movie is made of thousands of pictures shown really fast,
+        // this function redraws the entire game board 60 times every second 
+        // so everything looks like it's moving smoothly!
         function render(time) {
             ctx.clearRect(0, 0, state.width, state.height);
             ctx.strokeStyle = 'rgba(255,255,255,0.05)';
@@ -684,8 +887,9 @@
                         const g = state.grid[r][c];
                         let s = g.scale;
                         let isSelected = state.selected && state.selected.r === r && state.selected.c === c;
-                        if (isSelected) s *= (1 + Math.sin(time / 100) * 0.1);
-                        drawGem(r, c, g.type, g.power, g.offsetX, g.offsetY, s, g.alpha, isSelected);
+                        let isPulsing = isSelected || g.isHint;
+                        if (isPulsing) s *= (1 + Math.sin(time / 100) * 0.15);
+                        drawGem(r, c, g.type, g.power, g.offsetX, g.offsetY, s, g.alpha, isPulsing);
                     }
                 }
             }
@@ -703,6 +907,8 @@
             requestAnimationFrame(render);
         }
 
+        // 🚀 17. START THE ENGINES!
+        // When the web page finishes loading, this tells the game to start drawing!
         window.onload = () => { resize(); requestAnimationFrame(render); };
     </script>
 </body>
