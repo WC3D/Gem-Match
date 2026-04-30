@@ -56,6 +56,17 @@ Gem-Match/
 └── README.md    # You are here!
 ```
 
+## ⚖️ Legal Disclaimer
+
+**Gem Match: Power Up Edition** is an independent, original implementation of the "Match-3" puzzle genre. 
+
+- **Original Assets**: All visual assets (shapes, colors, UI), sound effects (if any), and source code were created from scratch or used under open licenses. This project does not utilize any proprietary graphics, audio, or codebase from third-party games (such as *Candy Crush Saga* or *Bejeweled*).
+- **Game Mechanics**: This project utilizes standard industry game mechanics (swapping adjacent items to form matches). Under international copyright law, game mechanics and "rules of play" are generally not subject to copyright protection; only the specific *expression* of those ideas (art, music, story) is protected.
+- **Fair Use & Independence**: This project is intended for educational and entertainment purposes and is not affiliated with, endorsed by, or sponsored by any other game developer or publisher.
+- **Infringement Notices (DMCA)**: If you believe that any content in this project infringes upon your copyright, please open an issue in this repository with detailed information. We take such claims seriously and will act promptly to remove any infringing material.
+
+For more information on the legal distinction between game mechanics and copyrightable expression, see: [Candy Crush Saga, Bejeweled, and why game clones are a thing](https://geeklawjournal.wordpress.com/2014/02/17/candy-crush-saga-bejeweled-and-why-game-clones-are-a-thing/).
+
 ## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

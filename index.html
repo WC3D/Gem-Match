@@ -1,3 +1,10 @@
+<!-- 
+  LEGAL DISCLAIMER: 
+  Gem Match: Power Up Edition is an independent creation inspired by the Match-3 genre. 
+  It uses standard game mechanics and original assets. 
+  No proprietary content from third parties was used in this project.
+  Reference: https://geeklawjournal.wordpress.com/2014/02/17/candy-crush-saga-bejeweled-and-why-game-clones-are-a-thing/
+-->
 <!DOCTYPE html>
 <html lang="en">
 
@@ -165,7 +172,8 @@
         const startBtn = document.getElementById('start-btn');
         const messageBox = document.getElementById('message-box');
 
-        const GRID_SIZE = 8;
+        const GRID_COLS = 10;
+        const GRID_ROWS = 8;
         const GEM_TYPES = 6;
         const COLORS = ['#ef4444', '#22c55e', '#3b82f6', '#eab308', '#a855f7', '#f97316'];
 
@@ -192,9 +200,9 @@
 
         function initGrid() {
             state.grid = [];
-            for (let r = 0; r < GRID_SIZE; r++) {
+            for (let r = 0; r < GRID_ROWS; r++) {
                 state.grid[r] = [];
-                for (let c = 0; c < GRID_SIZE; c++) {
+                for (let c = 0; c < GRID_COLS; c++) {
                     let type;
                     do {
                         type = Math.floor(Math.random() * GEM_TYPES);
@@ -207,7 +215,7 @@
                         type: type,
                         power: POWER_NONE,
                         offsetX: 0,
-                        offsetY: -GRID_SIZE - r,
+                        offsetY: -GRID_ROWS - r,
                         scale: 1,
                         alpha: 1
                     };
@@ -221,8 +229,8 @@
             let finished = false;
             while (!finished) {
                 finished = true;
-                for (let r = 0; r < GRID_SIZE; r++) {
-                    for (let c = 0; c < GRID_SIZE; c++) {
+                for (let r = 0; r < GRID_ROWS; r++) {
+                    for (let c = 0; c < GRID_COLS; c++) {
                         let gem = state.grid[r][c];
                         if (gem.offsetY < 0) {
                             gem.offsetY += 0.35;
@@ -239,12 +247,14 @@
         function resize() {
             const container = document.getElementById('game-container');
             const availableHeight = container.clientHeight - 250;
-            const size = Math.min(container.clientWidth * 0.95, availableHeight);
-            canvas.width = size;
-            canvas.height = size;
-            state.width = size;
-            state.height = size;
-            state.cellSize = size / GRID_SIZE;
+            const availableWidth = container.clientWidth * 0.95;
+            
+            state.cellSize = Math.min(availableWidth / GRID_COLS, availableHeight / GRID_ROWS);
+            
+            canvas.width = state.cellSize * GRID_COLS;
+            canvas.height = state.cellSize * GRID_ROWS;
+            state.width = canvas.width;
+            state.height = canvas.height;
         }
 
         function drawGem(r, c, type, power, xOffset = 0, yOffset = 0, scale = 1, alpha = 1, isPulsing = false) {
@@ -320,10 +330,10 @@
         function findMatches() {
             let sets = [];
             // Horizontal
-            for (let r = 0; r < GRID_SIZE; r++) {
+            for (let r = 0; r < GRID_ROWS; r++) {
                 let count = 1;
-                for (let c = 1; c <= GRID_SIZE; c++) {
-                    if (c < GRID_SIZE && state.grid[r][c].type === state.grid[r][c - 1].type) {
+                for (let c = 1; c <= GRID_COLS; c++) {
+                    if (c < GRID_COLS && state.grid[r][c].type === state.grid[r][c - 1].type) {
                         count++;
                     } else {
                         if (count >= 3) {
@@ -336,10 +346,10 @@
                 }
             }
             // Vertical
-            for (let c = 0; c < GRID_SIZE; c++) {
+            for (let c = 0; c < GRID_COLS; c++) {
                 let count = 1;
-                for (let r = 1; r <= GRID_SIZE; r++) {
-                    if (r < GRID_SIZE && state.grid[r][c].type === state.grid[r - 1][c].type) {
+                for (let r = 1; r <= GRID_ROWS; r++) {
+                    if (r < GRID_ROWS && state.grid[r][c].type === state.grid[r - 1][c].type) {
                         count++;
                     } else {
                         if (count >= 3) {
@@ -393,7 +403,7 @@
                         for (let dr = -1; dr <= 1; dr++) {
                             for (let dc = -1; dc <= 1; dc++) {
                                 let nr = m.r + dr, nc = m.c + dc;
-                                if (nr >= 0 && nr < GRID_SIZE && nc >= 0 && nc < GRID_SIZE) {
+                                if (nr >= 0 && nr < GRID_ROWS && nc >= 0 && nc < GRID_COLS) {
                                     if (!toRemove.some(tr => tr.r === nr && tr.c === nc)) {
                                         toRemove.push({ r: nr, c: nc });
                                         chainReaction = true;
@@ -416,9 +426,9 @@
             }
 
             // Collapse
-            for (let c = 0; c < GRID_SIZE; c++) {
+            for (let c = 0; c < GRID_COLS; c++) {
                 let empty = 0;
-                for (let r = GRID_SIZE - 1; r >= 0; r--) {
+                for (let r = GRID_ROWS - 1; r >= 0; r--) {
                     if (toRemove.some(m => m.r === r && m.c === c)) {
                         empty++;
                     } else if (empty > 0) {
@@ -450,8 +460,8 @@
             let falling = true;
             while (falling) {
                 falling = false;
-                for (let r = 0; r < GRID_SIZE; r++) {
-                    for (let c = 0; c < GRID_SIZE; c++) {
+                for (let r = 0; r < GRID_ROWS; r++) {
+                    for (let c = 0; c < GRID_COLS; c++) {
                         if (state.grid[r][c].offsetY < 0) {
                             state.grid[r][c].offsetY += 0.4;
                             if (state.grid[r][c].offsetY > 0) state.grid[r][c].offsetY = 0;
@@ -478,8 +488,8 @@
                 const wildC = (gem1.power === POWER_WILD) ? c1 : c2;
 
                 let wildcardMatches = [{ r: wildR, c: wildC }];
-                for (let r = 0; r < GRID_SIZE; r++) {
-                    for (let c = 0; c < GRID_SIZE; c++) {
+                for (let r = 0; r < GRID_ROWS; r++) {
+                    for (let c = 0; c < GRID_COLS; c++) {
                         if (state.grid[r][c].type === colorToClear) wildcardMatches.push({ r, c });
                     }
                 }
@@ -499,9 +509,9 @@
 
                 // Re-init the collapse logic by faking a match remove
                 let toRemove = wildcardMatches;
-                for (let c = 0; c < GRID_SIZE; c++) {
+                for (let c = 0; c < GRID_COLS; c++) {
                     let empty = 0;
-                    for (let r = GRID_SIZE - 1; r >= 0; r--) {
+                    for (let r = GRID_ROWS - 1; r >= 0; r--) {
                         if (toRemove.some(m => m.r === r && m.c === c)) empty++;
                         else if (empty > 0) {
                             state.grid[r + empty][c] = state.grid[r][c];
@@ -594,7 +604,7 @@
             const rect = canvas.getBoundingClientRect();
             const c = Math.floor((x - rect.left) / state.cellSize);
             const r = Math.floor((y - rect.top) / state.cellSize);
-            if (r >= 0 && r < GRID_SIZE && c >= 0 && c < GRID_SIZE) return { r, c };
+            if (r >= 0 && r < GRID_ROWS && c >= 0 && c < GRID_COLS) return { r, c };
             return null;
         }
 
@@ -628,7 +638,7 @@
                     targetR += dy > 0 ? 1 : -1;
                 }
 
-                if (targetR >= 0 && targetR < GRID_SIZE && targetC >= 0 && targetC < GRID_SIZE) {
+                if (targetR >= 0 && targetR < GRID_ROWS && targetC >= 0 && targetC < GRID_COLS) {
                     swapGems(state.selected.r, state.selected.c, targetR, targetC);
                 }
 
@@ -661,14 +671,16 @@
         function render(time) {
             ctx.clearRect(0, 0, state.width, state.height);
             ctx.strokeStyle = 'rgba(255,255,255,0.05)';
-            for (let i = 0; i <= GRID_SIZE; i++) {
+            for (let i = 0; i <= GRID_COLS; i++) {
                 ctx.beginPath(); ctx.moveTo(i * state.cellSize, 0); ctx.lineTo(i * state.cellSize, state.height); ctx.stroke();
+            }
+            for (let i = 0; i <= GRID_ROWS; i++) {
                 ctx.beginPath(); ctx.moveTo(0, i * state.cellSize); ctx.lineTo(state.width, i * state.cellSize); ctx.stroke();
             }
 
             if (state.grid.length) {
-                for (let r = 0; r < GRID_SIZE; r++) {
-                    for (let c = 0; c < GRID_SIZE; c++) {
+                for (let r = 0; r < GRID_ROWS; r++) {
+                    for (let c = 0; c < GRID_COLS; c++) {
                         const g = state.grid[r][c];
                         let s = g.scale;
                         let isSelected = state.selected && state.selected.r === r && state.selected.c === c;
