@@ -1,4 +1,4 @@
-# 💎 Gem Match: Power Up Edition
+# 💎 Gem Match: Rock Bottom Edition
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 

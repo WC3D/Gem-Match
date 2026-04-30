@@ -434,6 +434,22 @@
                     }
                 }
 
+                // Falling animation for wildcard collapse
+                let falling = true;
+                while (falling) {
+                    falling = false;
+                    for (let r = 0; r < GRID_ROWS; r++) {
+                        for (let c = 0; c < GRID_COLS; c++) {
+                            if (state.grid[r][c].offsetY < 0) {
+                                state.grid[r][c].offsetY += 0.4;
+                                if (state.grid[r][c].offsetY > 0) state.grid[r][c].offsetY = 0;
+                                falling = true;
+                            }
+                        }
+                    }
+                    await new Promise(r => setTimeout(r, 16));
+                }
+
                 handleMatches();
                 return;
             }
@@ -497,11 +513,19 @@
         function updateScore(pts) {
             state.score += pts;
             scoreEl.innerText = state.score;
-            if (state.score >= state.goal) {
+            let leveledUp = false;
+            let hitLevel12 = false;
+            
+            while (state.score >= state.goal) {
                 state.level++; state.goal += 3000; state.moves += 10;
+                leveledUp = true;
+                if (state.level === 12) hitLevel12 = true;
+            }
+            
+            if (leveledUp) {
                 levelEl.innerText = state.level; goalEl.innerText = state.goal; movesEl.innerText = state.moves;
                 
-                if (state.level === 12) {
+                if (hitLevel12 || state.level === 12) {
                     document.getElementById('overlay-title').innerText = "NEW OBSTACLE!";
                     document.getElementById('overlay-desc').innerHTML = "<b>Rocks</b> have appeared!<br>They cannot be matched.<br>Destroy them with Bombs or Wildcards!";
                     startBtn.innerText = "CONTINUE";
@@ -607,6 +631,11 @@
         window.addEventListener('touchend', onPointerUp);
 
         startBtn.addEventListener('click', () => {
+            if (startBtn.innerText === "CONTINUE") {
+                overlay.style.display = "none";
+                state.gameStarted = true;
+                return;
+            }
             state.score = 0; state.moves = 20; state.level = 1; state.goal = 2500;
             state.gameStarted = true;
             scoreEl.innerText = "0"; movesEl.innerText = "20"; levelEl.innerText = "1"; goalEl.innerText = "2500";
