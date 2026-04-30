@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Gem Match - Power Up Edition</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0f172a;
+            color: white;
+            margin: 0;
+            overflow: hidden;
+            touch-action: none;
+        }
+
+        #game-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: radial-gradient(circle at center, #1e293b 0%, #0f172a 100%);
+        }
+
+        canvas {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            box-shadow: 0 0 40px rgba(0, 0, 0, 0.5), 0 0 20px rgba(99, 102, 241, 0.2);
+            max-width: 95vw;
+            max-height: 70vh;
+            touch-action: none;
+            cursor: pointer;
+        }
+
+        .ui-panel {
+            width: 100%;
+            max-width: 500px;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 10;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 0.5rem 1.2rem;
+            border-radius: 12px;
+            text-align: center;
+            min-width: 100px;
+        }
+
+        .stat-label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: #94a3b8;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 900;
+            color: #f8fafc;
+        }
+
+        #overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.9);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            backdrop-filter: blur(12px);
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+            padding: 1rem 3rem;
+            border-radius: 9999px;
+            font-weight: bold;
+            font-size: 1.5rem;
+            transition: all 0.2s;
+            cursor: pointer;
+            border: none;
+            color: white;
+            box-shadow: 0 10px 25px -3px rgba(79, 70, 229, 0.5);
+        }
+
+        #message-box {
+            position: absolute;
+            top: 20%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: white;
+            color: #0f172a;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: bold;
+            pointer-events: none;
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 50;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="game-container">
+        <div class="ui-panel">
+            <div class="stat-card">
+                <div class="stat-label">Score</div>
+                <div id="score-val" class="stat-value">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Goal</div>
+                <div id="goal-val" class="stat-value">2500</div>
+            </div>
+        </div>
+
+        <canvas id="gameCanvas"></canvas>
+
+        <div class="ui-panel">
+            <div class="stat-card">
+                <div class="stat-label">Level</div>
+                <div id="level-val" class="stat-value">1</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Moves</div>
+                <div id="moves-val" class="stat-value">20</div>
+            </div>
+        </div>
+
+        <div id="message-box">READY!</div>
+
+        <div id="overlay">
+            <h1 id="overlay-title" class="text-5xl font-black mb-4 tracking-tighter">GEM MATCH</h1>
+            <p id="overlay-desc" class="text-slate-400 mb-8 text-center max-w-xs px-4">
+                <b>4 Match:</b> Creates a Bomb!<br>
+                <b>5 Match:</b> Creates a Wildcard!
+            </p>
+            <button id="start-btn" class="btn">PLAY NOW</button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreEl = document.getElementById('score-val');
+        const movesEl = document.getElementById('moves-val');
+        const levelEl = document.getElementById('level-val');
+        const goalEl = document.getElementById('goal-val');
+        const overlay = document.getElementById('overlay');
+        const startBtn = document.getElementById('start-btn');
+        const messageBox = document.getElementById('message-box');
+
+        const GRID_SIZE = 8;
+        const GEM_TYPES = 6;
+        const COLORS = ['#ef4444', '#22c55e', '#3b82f6', '#eab308', '#a855f7', '#f97316'];
+
+        // Power-up Types
+        const POWER_NONE = 0;
+        const POWER_BOMB = 1; // 4 Match
+        const POWER_WILD = 2; // 5 Match
+
+        let state = {
+            grid: [],
+            score: 0,
+            moves: 20,
+            level: 1,
+            goal: 2500,
+            selected: null,
+            dragStart: null,
+            isAnimating: false,
+            width: 0,
+            height: 0,
+            cellSize: 0,
+            particles: [],
+            gameStarted: false
+        };
+
+        function initGrid() {
+            state.grid = [];
+            for (let r = 0; r < GRID_SIZE; r++) {
+                state.grid[r] = [];
+                for (let c = 0; c < GRID_SIZE; c++) {
+                    let type;
+                    do {
+                        type = Math.floor(Math.random() * GEM_TYPES);
+                    } while (
+                        (c >= 2 && state.grid[r][c - 1].type === type && state.grid[r][c - 2].type === type) ||
+                        (r >= 2 && state.grid[r - 1][c].type === type && state.grid[r - 2][c].type === type)
+                    );
+
+                    state.grid[r][c] = {
+                        type: type,
+                        power: POWER_NONE,
+                        offsetX: 0,
+                        offsetY: -GRID_SIZE - r,
+                        scale: 1,
+                        alpha: 1
+                    };
+                }
+            }
+            animateIntro();
+        }
+
+        async function animateIntro() {
+            state.isAnimating = true;
+            let finished = false;
+            while (!finished) {
+                finished = true;
+                for (let r = 0; r < GRID_SIZE; r++) {
+                    for (let c = 0; c < GRID_SIZE; c++) {
+                        let gem = state.grid[r][c];
+                        if (gem.offsetY < 0) {
+                            gem.offsetY += 0.35;
+                            if (gem.offsetY > 0) gem.offsetY = 0;
+                            finished = false;
+                        }
+                    }
+                }
+                await new Promise(res => setTimeout(res, 10));
+            }
+            state.isAnimating = false;
+        }
+
+        function resize() {
+            const container = document.getElementById('game-container');
+            const availableHeight = container.clientHeight - 250;
+            const size = Math.min(container.clientWidth * 0.95, availableHeight);
+            canvas.width = size;
+            canvas.height = size;
+            state.width = size;
+            state.height = size;
+            state.cellSize = size / GRID_SIZE;
+        }
+
+        function drawGem(r, c, type, power, xOffset = 0, yOffset = 0, scale = 1, alpha = 1, isPulsing = false) {
+            const x = (c + xOffset) * state.cellSize + state.cellSize / 2;
+            const y = (r + yOffset) * state.cellSize + state.cellSize / 2;
+            const r_size = (state.cellSize / 2) * 0.8 * scale;
+
+            if (y < -state.cellSize) return;
+
+            ctx.save();
+            ctx.globalAlpha = alpha;
+            ctx.translate(x, y);
+
+            // Special power up indicators
+            if (power === POWER_BOMB) {
+                ctx.strokeStyle = 'rgba(0,0,0,0.8)';
+                ctx.lineWidth = 6;
+                ctx.beginPath();
+                ctx.arc(0, 0, r_size * 1.1, 0, Math.PI * 2);
+                ctx.stroke();
+                ctx.setLineDash([4, 4]);
+                ctx.strokeStyle = 'white';
+                ctx.stroke();
+            } else if (power === POWER_WILD) {
+                ctx.strokeStyle = 'white';
+                ctx.lineWidth = 6;
+                ctx.shadowBlur = 15;
+                ctx.shadowColor = 'white';
+                ctx.beginPath();
+                ctx.arc(0, 0, r_size * 1.1, 0, Math.PI * 2);
+                ctx.stroke();
+                ctx.shadowBlur = 0;
+            }
+
+            ctx.fillStyle = COLORS[type];
+            ctx.beginPath();
+            if (type === 0) { // Diamond
+                ctx.moveTo(0, -r_size); ctx.lineTo(r_size, 0); ctx.lineTo(0, r_size); ctx.lineTo(-r_size, 0);
+            } else if (type === 1) { // Hex
+                for (let i = 0; i < 6; i++) {
+                    const ang = (Math.PI * 2 / 6) * i;
+                    ctx.lineTo(Math.cos(ang) * r_size, Math.sin(ang) * r_size);
+                }
+            } else if (type === 2) { // Circle
+                ctx.arc(0, 0, r_size, 0, Math.PI * 2);
+            } else if (type === 3) { // Square
+                ctx.rect(-r_size * 0.8, -r_size * 0.8, r_size * 1.6, r_size * 1.6);
+            } else if (type === 4) { // Triangle
+                ctx.moveTo(0, -r_size); ctx.lineTo(r_size, r_size); ctx.lineTo(-r_size, r_size);
+            } else { // Star
+                for (let i = 0; i < 5; i++) {
+                    const ang = (Math.PI * 2 / 5) * i - Math.PI / 2;
+                    ctx.lineTo(Math.cos(ang) * r_size, Math.sin(ang) * r_size);
+                }
+            }
+            ctx.closePath();
+            ctx.fill();
+
+            // Shine
+            ctx.fillStyle = 'rgba(255,255,255,0.4)';
+            ctx.beginPath();
+            ctx.ellipse(-r_size / 3, -r_size / 3, r_size / 4, r_size / 6, Math.PI / 4, 0, Math.PI * 2);
+            ctx.fill();
+
+            if (isPulsing) {
+                ctx.strokeStyle = 'white';
+                ctx.lineWidth = 4;
+                ctx.stroke();
+            }
+            ctx.restore();
+        }
+
+        function findMatches() {
+            let sets = [];
+            // Horizontal
+            for (let r = 0; r < GRID_SIZE; r++) {
+                let count = 1;
+                for (let c = 1; c <= GRID_SIZE; c++) {
+                    if (c < GRID_SIZE && state.grid[r][c].type === state.grid[r][c - 1].type) {
+                        count++;
+                    } else {
+                        if (count >= 3) {
+                            let match = [];
+                            for (let i = 1; i <= count; i++) match.push({ r, c: c - i });
+                            sets.push({ gems: match, length: count });
+                        }
+                        count = 1;
+                    }
+                }
+            }
+            // Vertical
+            for (let c = 0; c < GRID_SIZE; c++) {
+                let count = 1;
+                for (let r = 1; r <= GRID_SIZE; r++) {
+                    if (r < GRID_SIZE && state.grid[r][c].type === state.grid[r - 1][c].type) {
+                        count++;
+                    } else {
+                        if (count >= 3) {
+                            let match = [];
+                            for (let i = 1; i <= count; i++) match.push({ r: r - i, c });
+                            sets.push({ gems: match, length: count });
+                        }
+                        count = 1;
+                    }
+                }
+            }
+            return sets;
+        }
+
+        async function handleMatches() {
+            let sets = findMatches();
+            if (sets.length === 0) {
+                state.isAnimating = false;
+                if (state.moves <= 0) endGame();
+                return;
+            }
+
+            state.isAnimating = true;
+            let toRemove = [];
+            let powerSpawned = [];
+
+            sets.forEach(set => {
+                updateScore(set.length * 100);
+                set.gems.forEach(g => toRemove.push(g));
+
+                // Spawn Power-ups based on match length
+                const head = set.gems[0];
+                if (set.length === 4) {
+                    powerSpawned.push({ r: head.r, c: head.c, power: POWER_BOMB, type: state.grid[head.r][head.c].type });
+                } else if (set.length >= 5) {
+                    powerSpawned.push({ r: head.r, c: head.c, power: POWER_WILD, type: state.grid[head.r][head.c].type });
+                }
+            });
+
+            // Unique removal list
+            toRemove = toRemove.filter((v, i, a) => a.findIndex(t => t.r === v.r && t.c === v.c) === i);
+
+            // Trigger Power-up Effects if any removed gem was a bomb/wild
+            let chainReaction = true;
+            while (chainReaction) {
+                chainReaction = false;
+                toRemove.forEach(m => {
+                    const gem = state.grid[m.r][m.c];
+                    if (gem.power === POWER_BOMB) {
+                        gem.power = POWER_NONE; // prevent loop
+                        for (let dr = -1; dr <= 1; dr++) {
+                            for (let dc = -1; dc <= 1; dc++) {
+                                let nr = m.r + dr, nc = m.c + dc;
+                                if (nr >= 0 && nr < GRID_SIZE && nc >= 0 && nc < GRID_SIZE) {
+                                    if (!toRemove.some(tr => tr.r === nr && tr.c === nc)) {
+                                        toRemove.push({ r: nr, c: nc });
+                                        chainReaction = true;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Animation out
+            for (let i = 0; i < 8; i++) {
+                toRemove.forEach(m => {
+                    state.grid[m.r][m.c].scale -= 0.12;
+                    state.grid[m.r][m.c].alpha -= 0.12;
+                    if (i === 4) createParticles(m.c * state.cellSize + state.cellSize / 2, m.r * state.cellSize + state.cellSize / 2, COLORS[state.grid[m.r][m.c].type]);
+                });
+                await new Promise(r => setTimeout(r, 20));
+            }
+
+            // Collapse
+            for (let c = 0; c < GRID_SIZE; c++) {
+                let empty = 0;
+                for (let r = GRID_SIZE - 1; r >= 0; r--) {
+                    if (toRemove.some(m => m.r === r && m.c === c)) {
+                        empty++;
+                    } else if (empty > 0) {
+                        state.grid[r + empty][c] = state.grid[r][c];
+                        state.grid[r + empty][c].offsetY = -empty;
+                    }
+                }
+                for (let i = 0; i < empty; i++) {
+                    state.grid[i][c] = {
+                        type: Math.floor(Math.random() * GEM_TYPES),
+                        power: POWER_NONE,
+                        offsetY: -empty - i,
+                        scale: 1,
+                        alpha: 1
+                    };
+                }
+            }
+
+            // Place power-ups that were earned
+            powerSpawned.forEach(ps => {
+                state.grid[ps.r][ps.c].power = ps.power;
+                state.grid[ps.r][ps.c].type = ps.type;
+                state.grid[ps.r][ps.c].scale = 1;
+                state.grid[ps.r][ps.c].alpha = 1;
+                state.grid[ps.r][ps.c].offsetY = 0;
+            });
+
+            // Falling animation
+            let falling = true;
+            while (falling) {
+                falling = false;
+                for (let r = 0; r < GRID_SIZE; r++) {
+                    for (let c = 0; c < GRID_SIZE; c++) {
+                        if (state.grid[r][c].offsetY < 0) {
+                            state.grid[r][c].offsetY += 0.4;
+                            if (state.grid[r][c].offsetY > 0) state.grid[r][c].offsetY = 0;
+                            falling = true;
+                        }
+                    }
+                }
+                await new Promise(r => setTimeout(r, 16));
+            }
+            handleMatches();
+        }
+
+        async function swapGems(r1, c1, r2, c2) {
+            state.isAnimating = true;
+            const gem1 = state.grid[r1][c1];
+            const gem2 = state.grid[r2][c2];
+
+            // Special Case: Wildcard Swap
+            if (gem1.power === POWER_WILD || gem2.power === POWER_WILD) {
+                state.moves--;
+                movesEl.innerText = state.moves;
+                const colorToClear = (gem1.power === POWER_WILD) ? gem2.type : gem1.type;
+                const wildR = (gem1.power === POWER_WILD) ? r1 : r2;
+                const wildC = (gem1.power === POWER_WILD) ? c1 : c2;
+
+                let wildcardMatches = [{ r: wildR, c: wildC }];
+                for (let r = 0; r < GRID_SIZE; r++) {
+                    for (let c = 0; c < GRID_SIZE; c++) {
+                        if (state.grid[r][c].type === colorToClear) wildcardMatches.push({ r, c });
+                    }
+                }
+
+                // Visual clear trigger
+                showMessage("WILDCARD!");
+                updateScore(wildcardMatches.length * 150);
+
+                // Clear them manually
+                for (let i = 0; i < 8; i++) {
+                    wildcardMatches.forEach(m => {
+                        state.grid[m.r][m.c].scale -= 0.12;
+                        state.grid[m.r][m.c].alpha -= 0.12;
+                    });
+                    await new Promise(r => setTimeout(r, 20));
+                }
+
+                // Re-init the collapse logic by faking a match remove
+                let toRemove = wildcardMatches;
+                for (let c = 0; c < GRID_SIZE; c++) {
+                    let empty = 0;
+                    for (let r = GRID_SIZE - 1; r >= 0; r--) {
+                        if (toRemove.some(m => m.r === r && m.c === c)) empty++;
+                        else if (empty > 0) {
+                            state.grid[r + empty][c] = state.grid[r][c];
+                            state.grid[r + empty][c].offsetY = -empty;
+                        }
+                    }
+                    for (let i = 0; i < empty; i++) {
+                        state.grid[i][c] = { type: Math.floor(Math.random() * GEM_TYPES), power: POWER_NONE, offsetY: -empty - i, scale: 1, alpha: 1 };
+                    }
+                }
+
+                handleMatches();
+                return;
+            }
+
+            const frames = 10;
+            for (let i = 1; i <= frames; i++) {
+                gem1.offsetX = (c2 - c1) * (i / frames);
+                gem1.offsetY = (r2 - r1) * (i / frames);
+                gem2.offsetX = (c1 - c2) * (i / frames);
+                gem2.offsetY = (r1 - r2) * (i / frames);
+                await new Promise(r => setTimeout(r, 16));
+            }
+
+            const tempType = gem1.type;
+            const tempPower = gem1.power;
+            gem1.type = gem2.type;
+            gem1.power = gem2.power;
+            gem2.type = tempType;
+            gem2.power = tempPower;
+            gem1.offsetX = gem1.offsetY = gem2.offsetX = gem2.offsetY = 0;
+
+            if (findMatches().length === 0) {
+                showMessage("NO MATCH!");
+                for (let i = 1; i <= frames; i++) {
+                    gem1.offsetX = (c1 - c2) * (i / frames);
+                    gem1.offsetY = (r1 - r2) * (i / frames);
+                    gem2.offsetX = (c2 - c1) * (i / frames);
+                    gem2.offsetY = (r2 - r1) * (i / frames);
+                    await new Promise(r => setTimeout(r, 16));
+                }
+                gem2.type = gem1.type;
+                gem2.power = gem1.power;
+                gem1.type = tempType;
+                gem1.power = tempPower;
+                gem1.offsetX = gem1.offsetY = gem2.offsetX = gem2.offsetY = 0;
+                state.isAnimating = false;
+            } else {
+                state.moves--;
+                movesEl.innerText = state.moves;
+                handleMatches();
+            }
+        }
+
+        function createParticles(x, y, color) {
+            for (let i = 0; i < 12; i++) {
+                state.particles.push({
+                    x, y,
+                    vx: (Math.random() - 0.5) * 12,
+                    vy: (Math.random() - 0.5) * 12,
+                    life: 1.0,
+                    color: color
+                });
+            }
+        }
+
+        function updateScore(pts) {
+            state.score += pts;
+            scoreEl.innerText = state.score;
+            if (state.score >= state.goal) {
+                state.level++; state.goal += 3000; state.moves += 10;
+                levelEl.innerText = state.level; goalEl.innerText = state.goal; movesEl.innerText = state.moves;
+                showMessage("LEVEL UP!");
+            }
+        }
+
+        function showMessage(txt) {
+            messageBox.innerText = txt;
+            messageBox.style.opacity = "1";
+            setTimeout(() => messageBox.style.opacity = "0", 1200);
+        }
+
+        function endGame() {
+            document.getElementById('overlay-title').innerText = "GAME OVER";
+            startBtn.innerText = "RESTART";
+            overlay.style.display = "flex";
+        }
+
+        function getCellFromCoords(x, y) {
+            const rect = canvas.getBoundingClientRect();
+            const c = Math.floor((x - rect.left) / state.cellSize);
+            const r = Math.floor((y - rect.top) / state.cellSize);
+            if (r >= 0 && r < GRID_SIZE && c >= 0 && c < GRID_SIZE) return { r, c };
+            return null;
+        }
+
+        function onPointerDown(e) {
+            if (state.isAnimating || !state.gameStarted) return;
+            const x = e.clientX || e.touches?.[0].clientX;
+            const y = e.clientY || e.touches?.[0].clientY;
+            const cell = getCellFromCoords(x, y);
+            if (cell) {
+                state.selected = cell;
+                state.dragStart = { x, y };
+            }
+        }
+
+        function onPointerMove(e) {
+            if (!state.dragStart || state.isAnimating) return;
+            const x = e.clientX || e.touches?.[0].clientX;
+            const y = e.clientY || e.touches?.[0].clientY;
+
+            const dx = x - state.dragStart.x;
+            const dy = y - state.dragStart.y;
+            const threshold = state.cellSize * 0.4;
+
+            if (Math.abs(dx) > threshold || Math.abs(dy) > threshold) {
+                let targetR = state.selected.r;
+                let targetC = state.selected.c;
+
+                if (Math.abs(dx) > Math.abs(dy)) {
+                    targetC += dx > 0 ? 1 : -1;
+                } else {
+                    targetR += dy > 0 ? 1 : -1;
+                }
+
+                if (targetR >= 0 && targetR < GRID_SIZE && targetC >= 0 && targetC < GRID_SIZE) {
+                    swapGems(state.selected.r, state.selected.c, targetR, targetC);
+                }
+
+                state.dragStart = null;
+                state.selected = null;
+            }
+        }
+
+        function onPointerUp() {
+            state.dragStart = null;
+        }
+
+        canvas.addEventListener('mousedown', onPointerDown);
+        window.addEventListener('mousemove', onPointerMove);
+        window.addEventListener('mouseup', onPointerUp);
+        canvas.addEventListener('touchstart', (e) => { e.preventDefault(); onPointerDown(e); });
+        window.addEventListener('touchmove', onPointerMove);
+        window.addEventListener('touchend', onPointerUp);
+
+        startBtn.addEventListener('click', () => {
+            state.score = 0; state.moves = 20; state.level = 1; state.goal = 2500;
+            state.gameStarted = true;
+            scoreEl.innerText = "0"; movesEl.innerText = "20"; levelEl.innerText = "1"; goalEl.innerText = "2500";
+            overlay.style.display = "none";
+            initGrid();
+        });
+
+        window.addEventListener('resize', resize);
+
+        function render(time) {
+            ctx.clearRect(0, 0, state.width, state.height);
+            ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+            for (let i = 0; i <= GRID_SIZE; i++) {
+                ctx.beginPath(); ctx.moveTo(i * state.cellSize, 0); ctx.lineTo(i * state.cellSize, state.height); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(0, i * state.cellSize); ctx.lineTo(state.width, i * state.cellSize); ctx.stroke();
+            }
+
+            if (state.grid.length) {
+                for (let r = 0; r < GRID_SIZE; r++) {
+                    for (let c = 0; c < GRID_SIZE; c++) {
+                        const g = state.grid[r][c];
+                        let s = g.scale;
+                        let isSelected = state.selected && state.selected.r === r && state.selected.c === c;
+                        if (isSelected) s *= (1 + Math.sin(time / 100) * 0.1);
+                        drawGem(r, c, g.type, g.power, g.offsetX, g.offsetY, s, g.alpha, isSelected);
+                    }
+                }
+            }
+
+            for (let i = state.particles.length - 1; i >= 0; i--) {
+                const p = state.particles[i];
+                p.x += p.vx; p.y += p.vy; p.life -= 0.03;
+                if (p.life <= 0) state.particles.splice(i, 1);
+                else {
+                    ctx.globalAlpha = p.life; ctx.fillStyle = p.color;
+                    ctx.beginPath(); ctx.arc(p.x, p.y, 4 * p.life, 0, Math.PI * 2); ctx.fill();
+                }
+            }
+            ctx.globalAlpha = 1;
+            requestAnimationFrame(render);
+        }
+
+        window.onload = () => { resize(); requestAnimationFrame(render); };
+    </script>
+</body>
+
+</html>
