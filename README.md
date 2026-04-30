@@ -2,19 +2,25 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-**Gem Match** is a high-performance, visually stunning Match-3 puzzle game built entirely with modern web technologies. Experience sleek animations, powerful combos, and a premium dark-mode aesthetic.
+**Gem Match** is a high-performance, visually stunning Match-3 puzzle game built entirely with modern web technologies and Retro saves. Experience sleek animations, powerful combos, and a premium dark-mode aesthetic.
 
 ---
 
 ## ✨ Features
 
 - **Classic Match-3 Gameplay**: Swap gems to align three or more of the same type.
-- **Dynamic Power-Ups**:
+- **Dynamic Power-Ups & Combos**:
   - 💣 **Bomb (4-Match)**: Creates a blast that clears all surrounding gems.
   - 🌟 **Wildcard (5-Match)**: A powerful gem that clears every instance of a specific color when swapped.
+  - 💥 **Board Clear (6+ Match)**: A massive explosion that destroys all gems on the screen for a massive bonus.
+- **Obstacle Mechanics**: 
+  - 🪨 **Rocks (Level 12+)**: Unmatchable gems that drop dynamically and can only be destroyed with power-ups.
 - **Progressive Difficulty**: Levels increase in difficulty with higher score goals and strategic move limits.
+- **Utility Features**:
+  - 💾 **Retro Save System**: Generate and load string-based seed codes to save your exact score, moves, and level progress.
+  - 💡 **Hint System**: Highlights an available match when you get stuck.
 - **Premium Visuals**: 
-  - Glassmorphic UI panels.
+  - Glassmorphic UI panels and dynamic pop-ups.
   - Smooth particle effects and gem animations.
   - Responsive Canvas-based rendering.
 - **Mobile Optimized**: Fully responsive design with touch-friendly controls.
@@ -31,10 +37,13 @@
 1. **Start**: Click "PLAY NOW" to begin Level 1.
 2. **Match**: Drag gems horizontally or vertically to swap them. 
 3. **Score**: Match 3 gems to score points. 
-4. **Combo**:
+4. **Combos & Power-ups**:
    - Match **4 gems** to spawn a **Bomb**.
    - Match **5 gems** to spawn a **Wildcard**.
-5. **Win**: Reach the level's goal before you run out of moves!
+   - Match **6+ gems** to trigger a full **Board Clear**.
+5. **Obstacles**: Starting at Level 12, **Rocks** will occasionally fall onto the board. They cannot be matched and must be destroyed by Bombs or Wildcards!
+6. **Utility**: Use the **Hint** button if you can't find a match, or use the **Save/Load** buttons to generate a code and pause your play session.
+7. **Win**: Reach the level's goal before you run out of moves!
 
 ## 🛠️ Installation & Usage
 
@@ -51,7 +60,9 @@ Since Gem Match is a static web application, no installation is required.
 
 ```text
 Gem-Match/
-├── index.html   # Main game file (HTML, CSS, and Logic)
+├── index.html   # Main layout and UI layout
+├── style.css    # Premium styling and animations
+├── game.js      # Core game loop, rendering, and logic
 ├── LICENSE      # MIT License
 └── README.md    # You are here!
 ```

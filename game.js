@@ -85,6 +85,14 @@
                     };
                 }
             }
+            
+            // Guarantee at least one rock for level 12+ starts/loads
+            if (state.level >= 12) {
+                const rockR = Math.floor(Math.random() * GRID_ROWS);
+                const rockC = Math.floor(Math.random() * GRID_COLS);
+                state.grid[rockR][rockC].type = GEM_ROCK;
+            }
+
             animateIntro();
         }
 
@@ -526,10 +534,19 @@
                 levelEl.innerText = state.level; goalEl.innerText = state.goal; movesEl.innerText = state.moves;
                 
                 if (hitLevel12 || state.level === 12) {
-                    document.getElementById('overlay-title').innerText = "NEW OBSTACLE!";
-                    document.getElementById('overlay-desc').innerHTML = "<b>Rocks</b> have appeared!<br>They cannot be matched.<br>Destroy them with Bombs or Wildcards!";
-                    startBtn.innerText = "CONTINUE";
-                    overlay.style.display = "flex";
+                    // Force a rock to spawn immediately
+                    let rockR = Math.floor(Math.random() * GRID_ROWS);
+                    let rockC = Math.floor(Math.random() * GRID_COLS);
+                    let attempts = 0;
+                    while (state.grid[rockR][rockC].power > 0 && attempts < 50) {
+                        rockR = Math.floor(Math.random() * GRID_ROWS);
+                        rockC = Math.floor(Math.random() * GRID_COLS);
+                        attempts++;
+                    }
+                    state.grid[rockR][rockC].type = GEM_ROCK;
+
+                    const tutBox = document.getElementById('tutorial-box');
+                    tutBox.classList.add('show');
                     state.gameStarted = false;
                 } else {
                     showMessage("LEVEL UP!");
@@ -641,6 +658,11 @@
             scoreEl.innerText = "0"; movesEl.innerText = "20"; levelEl.innerText = "1"; goalEl.innerText = "2500";
             overlay.style.display = "none";
             initGrid();
+        });
+
+        document.getElementById('tutorial-ok-btn').addEventListener('click', () => {
+            document.getElementById('tutorial-box').classList.remove('show');
+            state.gameStarted = true;
         });
 
         // 💡 18. GIVING A HINT
