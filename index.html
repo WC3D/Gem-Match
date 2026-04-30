@@ -11,9 +11,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Gem Match - Power Up Edition</title>
+    <title>Gem Match - Version 1.0.0</title>
     <script src="https://cdn.tailwindcss.com"></script>
-        <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
@@ -28,9 +28,14 @@
     -->
     <div id="game-container">
         <div class="flex gap-2 w-full max-w-md px-4 mt-4 z-10">
-            <button id="save-btn" class="flex-1 px-2 py-2 bg-emerald-700 text-white rounded-lg font-bold border border-emerald-500 hover:bg-emerald-600 transition-colors text-sm">Save Code</button>
-            <input id="load-input" type="text" placeholder="Paste Code..." class="flex-[2] min-w-0 px-2 py-2 bg-slate-800 text-white rounded-lg border border-slate-600 text-center font-mono text-xs focus:outline-none focus:border-indigo-500" />
-            <button id="load-btn" class="flex-1 px-2 py-2 bg-indigo-700 text-white rounded-lg font-bold border border-indigo-500 hover:bg-indigo-600 transition-colors text-sm">Load Code</button>
+            <button id="save-btn"
+                class="flex-1 px-2 py-2 bg-emerald-700 text-white rounded-lg font-bold border border-emerald-500 hover:bg-emerald-600 transition-colors text-sm">Save
+                Code</button>
+            <input id="load-input" type="text" placeholder="Paste Code..."
+                class="flex-[2] min-w-0 px-2 py-2 bg-slate-800 text-white rounded-lg border border-slate-600 text-center font-mono text-xs focus:outline-none focus:border-indigo-500" />
+            <button id="load-btn"
+                class="flex-1 px-2 py-2 bg-indigo-700 text-white rounded-lg font-bold border border-indigo-500 hover:bg-indigo-600 transition-colors text-sm">Load
+                Code</button>
         </div>
 
         <div class="ui-panel">
@@ -51,7 +56,9 @@
                 <div class="stat-label">Level</div>
                 <div id="level-val" class="stat-value">1</div>
             </div>
-            <button id="hint-btn" class="px-4 py-2 bg-slate-800 text-white rounded-full font-bold border border-slate-600 hover:bg-slate-700 transition-colors shadow-lg mx-2 self-center">💡 Hint</button>
+            <button id="hint-btn"
+                class="px-4 py-2 bg-slate-800 text-white rounded-full font-bold border border-slate-600 hover:bg-slate-700 transition-colors shadow-lg mx-2 self-center">💡
+                Hint</button>
             <div class="stat-card">
                 <div class="stat-label">Moves</div>
                 <div id="moves-val" class="stat-value">20</div>
@@ -61,17 +68,20 @@
         <div id="message-box">READY!</div>
 
         <div id="overlay">
-            <h1 id="overlay-title" class="text-5xl font-black mb-4 tracking-tighter">GEM MATCH</h1>
-            <p id="overlay-desc" class="text-slate-400 mb-8 text-center max-w-xs px-4">
-                <b>4 Match:</b> Creates a Bomb!<br>
-                <b>5 Match:</b> Creates a Wildcard!
-            </p>
-            <button id="start-btn" class="btn">PLAY NOW</button>
-            <div class="absolute bottom-4 text-xs text-slate-500 font-mono">Build Date: 2026-04-30 15:11 PM</div>
+            <h1 id="overlay-title" class="text-5xl font-black mb-4 tracking-tighter">GEM MATCH - Power Up Edition<< /h1>
+                    <p id="overlay-desc" class="text-slate-400 mb-8 text-center max-w-xs px-4">
+                        <b>3 Matches:</b> Clears gems<br>
+                        <b>4 Matches:</b> Creates a Bomb!<br>
+                        <b>5 Matches:</b> Creates a Wildcard!<br>
+                        <b>6+ Matches:</b> Clears the whole board!<br>
+                    </p>
+                    <button id="start-btn" class="btn">PLAY NOW</button>
+                    <div class="absolute bottom-4 text-xs text-slate-500 font-mono">Build Date: 2026-04-30 15:11 PM
+                    </div>
         </div>
     </div>
 
-        <script src="game.js"></script>
+    <script src="game.js"></script>
 </body>
 
 </html>

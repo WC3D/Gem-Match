@@ -30,7 +30,8 @@
         const GRID_COLS = 10;
         const GRID_ROWS = 8;
         const GEM_TYPES = 6;
-        const COLORS = ['#ef4444', '#22c55e', '#3b82f6', '#eab308', '#a855f7', '#f97316'];
+        const GEM_ROCK = 6;
+        const COLORS = ['#ef4444', '#22c55e', '#3b82f6', '#eab308', '#a855f7', '#f97316', '#475569'];
 
         // 💥 POWER-UPS! What happens when you match 4 or 5 gems!
         const POWER_NONE = 0;
@@ -53,7 +54,8 @@
             height: 0,
             cellSize: 0,
             particles: [],
-            gameStarted: false
+            gameStarted: false,
+            spawnRockThisTurn: false
         };
 
         // 🎲 4. BUILDING THE STARTING BOARD
@@ -117,7 +119,7 @@
             const availableHeight = container.clientHeight - 250;
             const availableWidth = container.clientWidth * 0.95;
 
-            state.cellSize = Math.min(availableWidth / GRID_COLS, availableHeight / GRID_ROWS);
+            state.cellSize = Math.floor(Math.min(availableWidth / GRID_COLS, availableHeight / GRID_ROWS));
 
             canvas.width = state.cellSize * GRID_COLS;
             canvas.height = state.cellSize * GRID_ROWS;
@@ -175,11 +177,20 @@
                 ctx.rect(-r_size * 0.8, -r_size * 0.8, r_size * 1.6, r_size * 1.6);
             } else if (type === 4) { // Triangle
                 ctx.moveTo(0, -r_size); ctx.lineTo(r_size, r_size); ctx.lineTo(-r_size, r_size);
-            } else { // Star
+            } else if (type === 5) { // Star
                 for (let i = 0; i < 5; i++) {
                     const ang = (Math.PI * 2 / 5) * i - Math.PI / 2;
                     ctx.lineTo(Math.cos(ang) * r_size, Math.sin(ang) * r_size);
                 }
+            } else if (type === 6) { // Rock
+                ctx.moveTo(r_size * 0.4, -r_size * 0.8);
+                ctx.lineTo(r_size * 0.8, -r_size * 0.4);
+                ctx.lineTo(r_size * 0.9, r_size * 0.4);
+                ctx.lineTo(r_size * 0.5, r_size * 0.8);
+                ctx.lineTo(-r_size * 0.4, r_size * 0.9);
+                ctx.lineTo(-r_size * 0.8, r_size * 0.3);
+                ctx.lineTo(-r_size * 0.7, -r_size * 0.5);
+                ctx.lineTo(-r_size * 0.2, -r_size * 0.9);
             }
             ctx.closePath();
             ctx.fill();
@@ -207,10 +218,10 @@
             for (let r = 0; r < GRID_ROWS; r++) {
                 let count = 1;
                 for (let c = 1; c <= GRID_COLS; c++) {
-                    if (c < GRID_COLS && state.grid[r][c].type === state.grid[r][c - 1].type) {
+                    if (c < GRID_COLS && state.grid[r][c].type !== GEM_ROCK && state.grid[r][c].type === state.grid[r][c - 1].type) {
                         count++;
                     } else {
-                        if (count >= 3) {
+                        if (count >= 3 && state.grid[r][c - 1].type !== GEM_ROCK) {
                             let match = [];
                             for (let i = 1; i <= count; i++) match.push({ r, c: c - i });
                             sets.push({ gems: match, length: count });
@@ -223,10 +234,10 @@
             for (let c = 0; c < GRID_COLS; c++) {
                 let count = 1;
                 for (let r = 1; r <= GRID_ROWS; r++) {
-                    if (r < GRID_ROWS && state.grid[r][c].type === state.grid[r - 1][c].type) {
+                    if (r < GRID_ROWS && state.grid[r][c].type !== GEM_ROCK && state.grid[r][c].type === state.grid[r - 1][c].type) {
                         count++;
                     } else {
-                        if (count >= 3) {
+                        if (count >= 3 && state.grid[r - 1][c].type !== GEM_ROCK) {
                             let match = [];
                             for (let i = 1; i <= count; i++) match.push({ r: r - i, c });
                             sets.push({ gems: match, length: count });
@@ -261,8 +272,16 @@
                 const head = set.gems[0];
                 if (set.length === 4) {
                     powerSpawned.push({ r: head.r, c: head.c, power: POWER_BOMB, type: state.grid[head.r][head.c].type });
-                } else if (set.length >= 5) {
+                } else if (set.length === 5) {
                     powerSpawned.push({ r: head.r, c: head.c, power: POWER_WILD, type: state.grid[head.r][head.c].type });
+                } else if (set.length >= 6) {
+                    updateScore(2000);
+                    showMessage("BOARD CLEAR!");
+                    for (let r = 0; r < GRID_ROWS; r++) {
+                        for (let c = 0; c < GRID_COLS; c++) {
+                            toRemove.push({ r, c });
+                        }
+                    }
                 }
             });
 
@@ -314,8 +333,19 @@
                     }
                 }
                 for (let i = 0; i < empty; i++) {
+                    let type = Math.floor(Math.random() * GEM_TYPES);
+                    if (state.level >= 12 && state.spawnRockThisTurn) {
+                        let rocks = 0;
+                        for(let rr=0; rr<GRID_ROWS; rr++) for(let cc=0; cc<GRID_COLS; cc++) {
+                            if(state.grid[rr] && state.grid[rr][cc] && state.grid[rr][cc].type === GEM_ROCK) rocks++;
+                        }
+                        if (rocks < 5) {
+                            type = GEM_ROCK;
+                            state.spawnRockThisTurn = false;
+                        }
+                    }
                     state.grid[i][c] = {
-                        type: Math.floor(Math.random() * GEM_TYPES),
+                        type: type,
                         power: POWER_NONE,
                         offsetY: -empty - i,
                         scale: 1,
@@ -363,6 +393,7 @@
             if (gem1.power === POWER_WILD || gem2.power === POWER_WILD) {
                 state.moves--;
                 movesEl.innerText = state.moves;
+                if (state.level >= 12 && Math.random() < 0.1) state.spawnRockThisTurn = true;
                 const colorToClear = (gem1.power === POWER_WILD) ? gem2.type : gem1.type;
                 const wildR = (gem1.power === POWER_WILD) ? r1 : r2;
                 const wildC = (gem1.power === POWER_WILD) ? c1 : c2;
@@ -442,6 +473,7 @@
             } else {
                 state.moves--;
                 movesEl.innerText = state.moves;
+                if (state.level >= 12 && Math.random() < 0.1) state.spawnRockThisTurn = true;
                 handleMatches();
             }
         }
@@ -468,7 +500,16 @@
             if (state.score >= state.goal) {
                 state.level++; state.goal += 3000; state.moves += 10;
                 levelEl.innerText = state.level; goalEl.innerText = state.goal; movesEl.innerText = state.moves;
-                showMessage("LEVEL UP!");
+                
+                if (state.level === 12) {
+                    document.getElementById('overlay-title').innerText = "NEW OBSTACLE!";
+                    document.getElementById('overlay-desc').innerHTML = "<b>Rocks</b> have appeared!<br>They cannot be matched.<br>Destroy them with Bombs or Wildcards!";
+                    startBtn.innerText = "CONTINUE";
+                    overlay.style.display = "flex";
+                    state.gameStarted = false;
+                } else {
+                    showMessage("LEVEL UP!");
+                }
             }
         }
 
@@ -491,38 +532,48 @@
         // 👇 15. PLAYER CONTROLS (MOUSE AND TOUCH)
         // These next functions figure out exactly where your mouse or finger is
         // so we know which gem you are trying to touch or swipe!
-        function getCellFromCoords(x, y) {
+        function getCanvasCoords(e) {
             const rect = canvas.getBoundingClientRect();
             const scaleX = canvas.width / rect.width;
             const scaleY = canvas.height / rect.height;
-            const c = Math.floor(((x - rect.left) * scaleX) / state.cellSize);
-            const r = Math.floor(((y - rect.top) * scaleY) / state.cellSize);
+            
+            let x, y;
+            if (e.touches && e.touches.length > 0) {
+                x = (e.touches[0].clientX - rect.left) * scaleX;
+                y = (e.touches[0].clientY - rect.top) * scaleY;
+            } else if (e.offsetX !== undefined && e.target === canvas) {
+                x = e.offsetX * scaleX;
+                y = e.offsetY * scaleY;
+            } else {
+                x = (e.clientX - rect.left) * scaleX;
+                y = (e.clientY - rect.top) * scaleY;
+            }
+            return { x, y };
+        }
+
+        function getCellFromCoords(e) {
+            const coords = getCanvasCoords(e);
+            const c = Math.floor(coords.x / state.cellSize);
+            const r = Math.floor(coords.y / state.cellSize);
             if (r >= 0 && r < GRID_ROWS && c >= 0 && c < GRID_COLS) return { r, c };
             return null;
         }
 
         function onPointerDown(e) {
             if (state.isAnimating || !state.gameStarted) return;
-            const x = e.clientX || e.touches?.[0].clientX;
-            const y = e.clientY || e.touches?.[0].clientY;
-            const cell = getCellFromCoords(x, y);
+            const cell = getCellFromCoords(e);
             if (cell) {
                 state.selected = cell;
-                state.dragStart = { x, y };
+                state.dragStart = getCanvasCoords(e);
             }
         }
 
         function onPointerMove(e) {
             if (!state.dragStart || state.isAnimating) return;
-            const x = e.clientX || e.touches?.[0].clientX;
-            const y = e.clientY || e.touches?.[0].clientY;
 
-            const rect = canvas.getBoundingClientRect();
-            const scaleX = canvas.width / rect.width;
-            const scaleY = canvas.height / rect.height;
-
-            const dx = (x - state.dragStart.x) * scaleX;
-            const dy = (y - state.dragStart.y) * scaleY;
+            const currentCoords = getCanvasCoords(e);
+            const dx = currentCoords.x - state.dragStart.x;
+            const dy = currentCoords.y - state.dragStart.y;
             const threshold = state.cellSize * 0.4;
 
             if (Math.abs(dx) > threshold || Math.abs(dy) > threshold) {
