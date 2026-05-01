@@ -19,6 +19,7 @@
         const overlay = document.getElementById('overlay');
         const startBtn = document.getElementById('start-btn');
         const messageBox = document.getElementById('message-box');
+        const continueBtn = document.getElementById('continue-btn');
         const hintBtn = document.getElementById('hint-btn');
         const saveBtn = document.getElementById('save-btn');
         const loadBtn = document.getElementById('load-btn');
@@ -55,7 +56,10 @@
             cellSize: 0,
             particles: [],
             gameStarted: false,
-            spawnRockThisTurn: false
+            spawnRockThisTurn: false,
+            rocksAtTurnStart: 0,
+            rocksDestroyedThisTurn: 0,
+            turnInProgress: false
         };
 
         // 🎲 4. BUILDING THE STARTING BOARD
@@ -86,11 +90,16 @@
                 }
             }
             
-            // Guarantee at least one rock for level 12+ starts/loads
-            if (state.level >= 12) {
-                const rockR = Math.floor(Math.random() * GRID_ROWS);
-                const rockC = Math.floor(Math.random() * GRID_COLS);
-                state.grid[rockR][rockC].type = GEM_ROCK;
+            // Fill initial rocks based on level
+            const maxRocks = getMaxRocks();
+            let rocksPlaced = 0;
+            while (rocksPlaced < maxRocks) {
+                const r = Math.floor(Math.random() * GRID_ROWS);
+                const c = Math.floor(Math.random() * GRID_COLS);
+                if (state.grid[r][c].type !== GEM_ROCK) {
+                    state.grid[r][c].type = GEM_ROCK;
+                    rocksPlaced++;
+                }
             }
 
             animateIntro();
@@ -264,6 +273,17 @@
             let sets = findMatches();
             if (sets.length === 0) {
                 state.isAnimating = false;
+                
+                // Move Penalty Check
+                if (state.turnInProgress) {
+                    if (state.rocksAtTurnStart >= 10 && state.rocksDestroyedThisTurn === 0) {
+                        state.moves -= 5;
+                        movesEl.innerText = state.moves;
+                        showMessage("ROCK PENALTY! -5 MOVES");
+                    }
+                    state.turnInProgress = false;
+                }
+
                 if (state.moves <= 0) endGame();
                 return;
             }
@@ -355,7 +375,10 @@
             // Rock Smashing Score
             let rocksDestroyed = 0;
             toRemove.forEach(m => {
-                if (state.grid[m.r][m.c].type === GEM_ROCK) rocksDestroyed++;
+                if (state.grid[m.r][m.c].type === GEM_ROCK) {
+                    rocksDestroyed++;
+                    state.rocksDestroyedThisTurn++;
+                }
             });
             if (rocksDestroyed > 0) {
                 if (rocksDestroyed === 1) {
@@ -391,11 +414,8 @@
                 for (let i = 0; i < empty; i++) {
                     let type = Math.floor(Math.random() * GEM_TYPES);
                     if (state.level >= 12 && state.spawnRockThisTurn) {
-                        let rocks = 0;
-                        for(let rr=0; rr<GRID_ROWS; rr++) for(let cc=0; cc<GRID_COLS; cc++) {
-                            if(state.grid[rr] && state.grid[rr][cc] && state.grid[rr][cc].type === GEM_ROCK) rocks++;
-                        }
-                        if (rocks < 5) {
+                        const maxRocks = getMaxRocks();
+                        if (countRocks() < maxRocks) {
                             type = GEM_ROCK;
                             state.spawnRockThisTurn = false;
                         }
@@ -449,6 +469,9 @@
             if (gem1.power === POWER_WILD || gem2.power === POWER_WILD) {
                 state.moves--;
                 movesEl.innerText = state.moves;
+                state.rocksAtTurnStart = countRocks();
+                state.rocksDestroyedThisTurn = 0;
+                state.turnInProgress = true;
                 if (state.level >= 12 && Math.random() < 0.1) state.spawnRockThisTurn = true;
                 const colorToClear = (gem1.power === POWER_WILD) ? gem2.type : gem1.type;
                 const wildR = (gem1.power === POWER_WILD) ? r1 : r2;
@@ -545,6 +568,9 @@
             } else {
                 state.moves--;
                 movesEl.innerText = state.moves;
+                state.rocksAtTurnStart = countRocks();
+                state.rocksDestroyedThisTurn = 0;
+                state.turnInProgress = true;
                 if (state.level >= 12 && Math.random() < 0.1) state.spawnRockThisTurn = true;
                 handleMatches();
             }
@@ -614,11 +640,30 @@
         // Oh no! You ran out of moves. This shows the game over screen.
         function endGame() {
             document.getElementById('overlay-title').innerText = "GAME OVER";
-            startBtn.innerText = "RESTART";
+            startBtn.innerText = "START OVER";
+            continueBtn.classList.remove('hidden');
             overlay.style.display = "flex";
         }
 
-        // 👇 15. PLAYER CONTROLS (MOUSE AND TOUCH)
+        // ⚙️ 15. HELPERS
+        // Small tools to help us do things like count rocks or calculate scaling caps.
+        function getMaxRocks() {
+            if (state.level < 12) return 0;
+            if (state.level < 25) return 1;
+            return Math.min(40, 2 + Math.floor((state.level - 25) / 10));
+        }
+
+        function countRocks() {
+            let rocks = 0;
+            for (let r = 0; r < GRID_ROWS; r++) {
+                for (let c = 0; c < GRID_COLS; c++) {
+                    if (state.grid[r][c].type === GEM_ROCK) rocks++;
+                }
+            }
+            return rocks;
+        }
+
+        // 👇 16. PLAYER CONTROLS (MOUSE AND TOUCH)
         // These next functions figure out exactly where your mouse or finger is
         // so we know which gem you are trying to touch or swipe!
         function getCanvasCoords(e) {
@@ -697,16 +742,34 @@
 
         startBtn.addEventListener('click', () => {
             startBtn.blur();
-            if (startBtn.innerText === "CONTINUE") {
-                overlay.style.display = "none";
-                state.gameStarted = true;
-                return;
-            }
+            continueBtn.classList.add('hidden');
             state.score = 0; state.moves = 20; state.level = 1; state.goal = 2500;
             state.gameStarted = true;
             scoreEl.innerText = "0"; movesEl.innerText = "20"; levelEl.innerText = "1"; goalEl.innerText = "2500";
             overlay.style.display = "none";
             initGrid();
+        });
+
+        continueBtn.addEventListener('click', () => {
+            continueBtn.blur();
+            continueBtn.classList.add('hidden');
+            state.score -= 5000;
+            state.moves = 5;
+            
+            // Re-randomize gems except rocks
+            for (let r = 0; r < GRID_ROWS; r++) {
+                for (let c = 0; c < GRID_COLS; c++) {
+                    if (state.grid[r][c].type !== GEM_ROCK) {
+                        state.grid[r][c].type = Math.floor(Math.random() * GEM_TYPES);
+                    }
+                }
+            }
+            
+            scoreEl.innerText = state.score;
+            movesEl.innerText = state.moves;
+            overlay.style.display = "none";
+            state.gameStarted = true;
+            showMessage("RE-RANDOMIZED!");
         });
 
         document.getElementById('tutorial-ok-btn').addEventListener('click', () => {
