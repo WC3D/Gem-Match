@@ -232,7 +232,7 @@
                         if (count >= 3 && state.grid[r][c - 1].type !== GEM_ROCK) {
                             let match = [];
                             for (let i = 1; i <= count; i++) match.push({ r, c: c - i });
-                            sets.push({ gems: match, length: count });
+                            sets.push({ gems: match, length: count, orientation: 'horizontal' });
                         }
                         count = 1;
                     }
@@ -248,7 +248,7 @@
                         if (count >= 3 && state.grid[r - 1][c].type !== GEM_ROCK) {
                             let match = [];
                             for (let i = 1; i <= count; i++) match.push({ r: r - i, c });
-                            sets.push({ gems: match, length: count });
+                            sets.push({ gems: match, length: count, orientation: 'vertical' });
                         }
                         count = 1;
                     }
@@ -276,8 +276,24 @@
                 updateScore(set.length * 100);
                 set.gems.forEach(g => toRemove.push(g));
 
-                // Spawn Power-ups based on match length
+                // Check for Double Bomb Power-up
+                let bombCount = 0;
+                set.gems.forEach(g => {
+                    if (state.grid[g.r][g.c].power === POWER_BOMB) bombCount++;
+                });
+
                 const head = set.gems[0];
+                if (bombCount >= 2) {
+                    showMessage("BOMB COMBO!");
+                    updateScore(1000);
+                    if (set.orientation === 'horizontal') {
+                        for (let c = 0; c < GRID_COLS; c++) toRemove.push({ r: head.r, c });
+                    } else {
+                        for (let r = 0; r < GRID_ROWS; r++) toRemove.push({ r, c: head.c });
+                    }
+                }
+
+                // Spawn Power-ups based on match length
                 if (set.length === 4) {
                     powerSpawned.push({ r: head.r, c: head.c, power: POWER_BOMB, type: state.grid[head.r][head.c].type });
                 } else if (set.length === 5) {
