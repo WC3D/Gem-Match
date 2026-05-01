@@ -76,7 +76,7 @@ Gem-Match/
 
 ## ⚖️ Legal Disclaimer
 
-**Gem Match: Power Up Edition** is an independent, original implementation of the "Match-3" puzzle genre. 
+**Gem Match: Power Up Update** is an independent, original implementation of the "Match-3" puzzle genre. 
 
 - **Original Assets**: All visual assets (shapes, colors, UI), sound effects (if any), and source code were created from scratch or used under open licenses. This project does not utilize any proprietary graphics, audio, or codebase from third-party games (such as *Candy Crush Saga* or *Bejeweled*).
 - **Game Mechanics**: This project utilizes standard industry game mechanics (swapping adjacent items to form matches). Under international copyright law, game mechanics and "rules of play" are generally not subject to copyright protection; only the specific *expression* of those ideas (art, music, story) is protected.
