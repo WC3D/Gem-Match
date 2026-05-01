@@ -272,9 +272,15 @@
             let toRemove = [];
             let powerSpawned = [];
 
+            let allBombsInMatches = [];
             sets.forEach(set => {
                 updateScore(set.length * 100);
-                set.gems.forEach(g => toRemove.push(g));
+                set.gems.forEach(g => {
+                    toRemove.push(g);
+                    if (state.grid[g.r][g.c].power === POWER_BOMB) {
+                        allBombsInMatches.push({ r: g.r, c: g.c, type: state.grid[g.r][g.c].type });
+                    }
+                });
 
                 // Check for Double Bomb Power-up
                 let bombCount = 0;
@@ -308,6 +314,17 @@
                     }
                 }
             });
+
+            // Cross Combo: 2+ matches and different colored bombs
+            const uniqueTypes = new Set(allBombsInMatches.map(b => b.type));
+            if (sets.length >= 2 && uniqueTypes.size >= 2) {
+                showMessage("CROSS COMBO!");
+                updateScore(2000);
+                allBombsInMatches.forEach(b => {
+                    for (let c = 0; c < GRID_COLS; c++) toRemove.push({ r: b.r, c });
+                    for (let r = 0; r < GRID_ROWS; r++) toRemove.push({ r, c: b.c });
+                });
+            }
 
             // Unique removal list
             toRemove = toRemove.filter((v, i, a) => a.findIndex(t => t.r === v.r && t.c === v.c) === i);
