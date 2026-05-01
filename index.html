@@ -1,32 +1,17 @@
-<!-- 
-  LEGAL DISCLAIMER: 
-  Gem Match: Power Up Edition is an independent creation inspired by the Match-3 genre. 
-  It uses standard game mechanics and original assets. 
-  No proprietary content from third parties was used in this project.
-  Reference: https://geeklawjournal.wordpress.com/2014/02/17/candy-crush-saga-bejeweled-and-why-game-clones-are-a-thing/
--->
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Gem Match - Version 1.0.0</title>
+    <title>Gem Match - Power Up Edition</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
-
-    <!-- 
-      ================================================================
-      🏗️ HTML SECTION: The "Skeleton" of our Game
-      This part builds the visible pieces of our game, like the score board, 
-      the screen where gems show up (canvas), and the starting menu.
-      Think of this like building the game board out of cardboard before we paint it!
-      ================================================================ 
-    -->
     <div id="game-container">
+        <!-- Save/Load Panel -->
         <div class="flex gap-2 w-full max-w-md px-4 mt-4 z-10">
             <button id="save-btn" type="button"
                 class="flex-1 px-2 py-2 bg-emerald-700 text-white rounded-lg font-bold border border-emerald-500 hover:bg-emerald-600 transition-colors text-sm">Save
@@ -77,8 +62,7 @@
         </div>
 
         <div id="overlay">
-            <h1 id="overlay-title" class="text-5xl font-black mb-4 tracking-tighter">GEM MATCH - Rock Bottom Edition
-            </h1>
+            <h1 id="overlay-title" class="text-5xl font-black mb-4 tracking-tighter text-center px-4">GEM MATCH<br><span class="text-indigo-500">Power Up Edition</span></h1>
             <p id="overlay-desc" class="text-slate-400 mb-8 text-center max-w-sm px-4 text-xs leading-relaxed">
                 <b>3 Matches:</b> Clears gems<br>
                 <b>4 Matches:</b> Creates a Bomb!<br>
@@ -89,12 +73,27 @@
                 <b>Rocks:</b> Unmatchable obstacles (Lvl 12+).
             </p>
             <button id="start-btn" type="button" class="btn">PLAY NOW</button>
-            <div class="absolute bottom-4 text-xs text-slate-500 font-mono">Build Date: 2026-04-30 15:58 PM
+            <div class="absolute bottom-4 text-[10px] text-slate-500 font-mono uppercase tracking-widest text-center w-full">
+                Last Updated: <span id="last-updated">---</span>
             </div>
         </div>
     </div>
 
     <script src="game.js"></script>
+    <script>
+        // Dynamic Date Updater
+        const updateDate = () => {
+            const date = new Date(document.lastModified);
+            document.getElementById('last-updated').textContent = date.toLocaleString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        };
+        updateDate();
+    </script>
 </body>
 
 </html>
