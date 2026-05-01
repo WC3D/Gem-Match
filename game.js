@@ -352,6 +352,21 @@
                 });
             }
 
+            // Rock Smashing Score
+            let rocksDestroyed = 0;
+            toRemove.forEach(m => {
+                if (state.grid[m.r][m.c].type === GEM_ROCK) rocksDestroyed++;
+            });
+            if (rocksDestroyed > 0) {
+                if (rocksDestroyed === 1) {
+                    updateScore(750);
+                    showMessage("ROCK SMASHED!");
+                } else {
+                    updateScore(rocksDestroyed * 1250);
+                    showMessage(`${rocksDestroyed} ROCKS SMASHED!`);
+                }
+            }
+
             // Animation out
             for (let i = 0; i < 8; i++) {
                 toRemove.forEach(m => {

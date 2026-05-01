@@ -13,8 +13,11 @@
   - 💣 **Bomb (4-Match)**: Creates a blast that clears all surrounding gems.
   - 🌟 **Wildcard (5-Match)**: A powerful gem that clears every instance of a specific color when swapped.
   - 💥 **Board Clear (6+ Match)**: A massive explosion that destroys all gems on the screen for a massive bonus.
+  - ⚡ **Bomb Combo (2+ Bombs in Match)**: Clears the entire row or column for a strategic line clear.
+  - 🔥 **Cross Combo (Multi-Color Bomb Match)**: Clears both the row and column for each bomb involved!
 - **Obstacle Mechanics**: 
-  - 🪨 **Rocks (Level 12+)**: Unmatchable gems that drop dynamically and can only be destroyed with power-ups.
+  - 🪨 **Rocks (Level 12+)**: Unmatchable gems that drop dynamically.
+  - 🔨 **Rock Smashing**: Destroying rocks awards **750 points** (single) or **1,250 points** per rock (multiple).
 - **Progressive Difficulty**: Levels increase in difficulty with higher score goals and strategic move limits.
 - **Utility Features**:
   - 💾 **Retro Save System**: Generate and load string-based seed codes to save your exact score, moves, and level progress.
@@ -41,7 +44,11 @@
    - Match **4 gems** to spawn a **Bomb**.
    - Match **5 gems** to spawn a **Wildcard**.
    - Match **6+ gems** to trigger a full **Board Clear**.
-5. **Obstacles**: Starting at Level 12, **Rocks** will occasionally fall onto the board. They cannot be matched and must be destroyed by Bombs or Wildcards!
+   - Include **2+ Bombs** in a match for a **Bomb Combo** (Line Clear).
+   - Complete **2 Matches** with different colored bombs for a **Cross Combo** (Cross Clear).
+5. **Obstacles & Scoring**: Starting at Level 12, **Rocks** will occasionally fall. They cannot be matched! Destroy them with Bombs or combos for huge bonuses:
+   - **1 Rock**: 750 pts.
+   - **Multiple Rocks**: 1,250 pts each!
 6. **Utility**: Use the **Hint** button if you can't find a match, or use the **Save/Load** buttons to generate a code and pause your play session.
 7. **Win**: Reach the level's goal before you run out of moves!
 
