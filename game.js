@@ -32,7 +32,26 @@
         const GRID_ROWS = 8;
         const GEM_TYPES = 6;
         const GEM_ROCK = 6;
-        const COLORS = ['#ef4444', '#22c55e', '#3b82f6', '#eab308', '#a855f7', '#f97316', '#475569'];
+        let COLORS = ['#ef4444', '#22c55e', '#3b82f6', '#eab308', '#a855f7', '#f97316', '#475569'];
+
+        // Mother's Day Theme (Second Sunday in May)
+        const today = new Date();
+        const isMay = today.getMonth() === 4;
+        const isSunday = today.getDay() === 0;
+        const isSecondWeek = today.getDate() >= 8 && today.getDate() <= 14;
+
+        if (isMay && isSunday && isSecondWeek) {
+            // pinks, whites, reds, yellows
+            COLORS = [
+                '#ffb6c1', // Light Pink
+                '#ffffff', // White
+                '#ef4444', // Red
+                '#eab308', // Yellow
+                '#ff69b4', // Hot Pink
+                '#db2777', // Dark Pink
+                '#475569'  // Rock
+            ];
+        }
 
         // 💥 POWER-UPS! What happens when you match 4 or 5 gems!
         const POWER_NONE = 0;
