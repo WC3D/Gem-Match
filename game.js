@@ -53,6 +53,8 @@ if (isMay && isSunday && isSecondWeek) {
     ];
 }
 
+let originalColors = [...COLORS];
+
 // 💥 POWER-UPS! What happens when you match 4 or 5 gems!
 const POWER_NONE = 0;
 const POWER_BOMB = 1; // 4 Match
@@ -78,7 +80,8 @@ let state = {
     spawnRockThisTurn: false,
     rocksAtTurnStart: 0,
     rocksDestroyedThisTurn: 0,
-    turnInProgress: false
+    turnInProgress: false,
+    eggMode: null
 };
 
 // 🎲 4. BUILDING THE STARTING BOARD
@@ -198,44 +201,71 @@ function drawGem(r, c, type, power, xOffset = 0, yOffset = 0, scale = 1, alpha =
         ctx.shadowBlur = 0;
     }
 
-    ctx.fillStyle = COLORS[type];
-    ctx.beginPath();
-    if (type === 0) { // Diamond
-        ctx.moveTo(0, -r_size); ctx.lineTo(r_size, 0); ctx.lineTo(0, r_size); ctx.lineTo(-r_size, 0);
-    } else if (type === 1) { // Hex
-        for (let i = 0; i < 6; i++) {
-            const ang = (Math.PI * 2 / 6) * i;
-            ctx.lineTo(Math.cos(ang) * r_size, Math.sin(ang) * r_size);
-        }
-    } else if (type === 2) { // Circle
-        ctx.arc(0, 0, r_size, 0, Math.PI * 2);
-    } else if (type === 3) { // Square
-        ctx.rect(-r_size * 0.8, -r_size * 0.8, r_size * 1.6, r_size * 1.6);
-    } else if (type === 4) { // Triangle
-        ctx.moveTo(0, -r_size); ctx.lineTo(r_size, r_size); ctx.lineTo(-r_size, r_size);
-    } else if (type === 5) { // Star
-        for (let i = 0; i < 5; i++) {
-            const ang = (Math.PI * 2 / 5) * i - Math.PI / 2;
-            ctx.lineTo(Math.cos(ang) * r_size, Math.sin(ang) * r_size);
-        }
-    } else if (type === 6) { // Rock
-        ctx.moveTo(r_size * 0.4, -r_size * 0.8);
-        ctx.lineTo(r_size * 0.8, -r_size * 0.4);
-        ctx.lineTo(r_size * 0.9, r_size * 0.4);
-        ctx.lineTo(r_size * 0.5, r_size * 0.8);
-        ctx.lineTo(-r_size * 0.4, r_size * 0.9);
-        ctx.lineTo(-r_size * 0.8, r_size * 0.3);
-        ctx.lineTo(-r_size * 0.7, -r_size * 0.5);
-        ctx.lineTo(-r_size * 0.2, -r_size * 0.9);
-    }
-    ctx.closePath();
-    ctx.fill();
+    let skipShape = (state.eggMode === 'duck' && (type === 3 || type === 6)) ||
+                    (state.eggMode === 'lizard' && type === 1);
 
-    // Shine
-    ctx.fillStyle = 'rgba(255,255,255,0.4)';
-    ctx.beginPath();
-    ctx.ellipse(-r_size / 3, -r_size / 3, r_size / 4, r_size / 6, Math.PI / 4, 0, Math.PI * 2);
-    ctx.fill();
+    if (!skipShape) {
+        ctx.fillStyle = COLORS[type];
+        ctx.beginPath();
+        if (type === 0) { // Diamond
+            ctx.moveTo(0, -r_size); ctx.lineTo(r_size, 0); ctx.lineTo(0, r_size); ctx.lineTo(-r_size, 0);
+        } else if (type === 1) { // Hex
+            for (let i = 0; i < 6; i++) {
+                const ang = (Math.PI * 2 / 6) * i;
+                ctx.lineTo(Math.cos(ang) * r_size, Math.sin(ang) * r_size);
+            }
+        } else if (type === 2) { // Circle
+            ctx.arc(0, 0, r_size, 0, Math.PI * 2);
+        } else if (type === 3) { // Square
+            ctx.rect(-r_size * 0.8, -r_size * 0.8, r_size * 1.6, r_size * 1.6);
+        } else if (type === 4) { // Triangle
+            ctx.moveTo(0, -r_size); ctx.lineTo(r_size, r_size); ctx.lineTo(-r_size, r_size);
+        } else if (type === 5) { // Star
+            for (let i = 0; i < 5; i++) {
+                const ang = (Math.PI * 2 / 5) * i - Math.PI / 2;
+                ctx.lineTo(Math.cos(ang) * r_size, Math.sin(ang) * r_size);
+            }
+        } else if (type === 6) { // Rock
+            ctx.moveTo(r_size * 0.4, -r_size * 0.8);
+            ctx.lineTo(r_size * 0.8, -r_size * 0.4);
+            ctx.lineTo(r_size * 0.9, r_size * 0.4);
+            ctx.lineTo(r_size * 0.5, r_size * 0.8);
+            ctx.lineTo(-r_size * 0.4, r_size * 0.9);
+            ctx.lineTo(-r_size * 0.8, r_size * 0.3);
+            ctx.lineTo(-r_size * 0.7, -r_size * 0.5);
+            ctx.lineTo(-r_size * 0.2, -r_size * 0.9);
+        }
+        ctx.closePath();
+        ctx.fill();
+
+        // Shine
+        ctx.fillStyle = 'rgba(255,255,255,0.4)';
+        ctx.beginPath();
+        ctx.ellipse(-r_size / 3, -r_size / 3, r_size / 4, r_size / 6, Math.PI / 4, 0, Math.PI * 2);
+        ctx.fill();
+    }
+
+    // Easter egg overlays
+    if (state.eggMode === 'duck') {
+        if (type === 3) {
+            ctx.font = `${Math.floor(state.cellSize * 0.55)}px serif`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('🦆', 0, 0);
+        } else if (type === 6) {
+            ctx.font = `${Math.floor(state.cellSize * 0.55)}px serif`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('🦢', 0, 0);
+        }
+    } else if (state.eggMode === 'lizard') {
+        if (type === 1) {
+            ctx.font = `${Math.floor(state.cellSize * 0.55)}px serif`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('🦎', 0, 0);
+        }
+    }
 
     if (isPulsing) {
         ctx.strokeStyle = 'white';
@@ -333,7 +363,9 @@ function findSquares() {
 // adds points to your score, and drops new gems from the ceiling to fill the holes!
 async function handleMatches() {
     let sets = findMatches();
-    if (sets.length === 0) {
+    let squares = findSquares();
+
+    if (sets.length === 0 && squares.length === 0) {
         state.isAnimating = false;
 
         // Move Penalty Check
@@ -419,7 +451,6 @@ async function handleMatches() {
     });
 
     // Square shape detection
-    let squares = findSquares();
     if (squares.length > 0) {
         showMessage("SQUARE!");
         const pts = Math.floor(300 * 0.75);
@@ -631,7 +662,7 @@ async function swapGems(r1, c1, r2, c2) {
     gem2.power = tempPower;
     gem1.offsetX = gem1.offsetY = gem2.offsetX = gem2.offsetY = 0;
 
-    if (findMatches().length === 0) {
+    if (findMatches().length === 0 && findSquares().length === 0) {
         showMessage("NO MATCH!");
         for (let i = 1; i <= frames; i++) {
             gem1.offsetX = (c1 - c2) * (i / frames);
@@ -992,8 +1023,8 @@ loadBtn.addEventListener('click', () => {
     const code = loadInput.value.trim();
     if (!code) return;
 
-    const lower = code.toLowerCase();
-    if (lower === 'konami') {
+    // Case-insensitive easter egg
+    if (code.toLowerCase() === 'konami') {
         if (!state.gameStarted || !state.grid.length) return;
         let targets = [];
         for (let r = 0; r < GRID_ROWS; r++) {
@@ -1013,6 +1044,78 @@ loadBtn.addEventListener('click', () => {
         }
         loadInput.value = "";
         showMessage("↑ ↑ ↓ ↓ ← → ← → B A");
+        return;
+    }
+
+    // Exact case easter eggs
+    if (code === 'rocks') {
+        if (!state.gameStarted || !state.grid.length) return;
+        for (let c = 0; c < GRID_COLS; c++) {
+            state.grid[0][c].type = GEM_ROCK;
+            state.grid[0][c].power = POWER_NONE;
+            state.grid[1][c].type = GEM_ROCK;
+            state.grid[1][c].power = POWER_NONE;
+            state.grid[GRID_ROWS - 2][c].type = GEM_ROCK;
+            state.grid[GRID_ROWS - 2][c].power = POWER_NONE;
+            state.grid[GRID_ROWS - 1][c].type = GEM_ROCK;
+            state.grid[GRID_ROWS - 1][c].power = POWER_NONE;
+        }
+        loadInput.value = "";
+        showMessage("ROCKS!");
+        return;
+    }
+
+    if (code === 'America' || code === 'merica' || code === 'murica') {
+        COLORS = ['#ef4444', '#ffffff', '#3b82f6', '#ef4444', '#ffffff', '#3b82f6', '#475569'];
+        loadInput.value = "";
+        showMessage("'MURICA!");
+        return;
+    }
+
+    if (code === 'easter egg') {
+        loadInput.value = "";
+        showMessage("Found one!");
+        return;
+    }
+
+    if (code === 'duck') {
+        if (!state.gameStarted || !state.grid.length) return;
+        if (state.eggMode === 'duck') {
+            state.eggMode = null;
+            COLORS = [...originalColors];
+            showMessage("REVERTED!");
+        } else {
+            state.eggMode = 'duck';
+            COLORS[3] = '#ff8c00';
+            COLORS[6] = '#f0f0f0';
+            showMessage("DUCK DUCK GOOSE!");
+        }
+        loadInput.value = "";
+        return;
+    }
+
+    if (code === 'lizard') {
+        if (!state.gameStarted || !state.grid.length) return;
+        if (state.eggMode === 'lizard') {
+            state.eggMode = null;
+            COLORS = [...originalColors];
+            showMessage("REVERTED!");
+        } else {
+            state.eggMode = 'lizard';
+            COLORS[1] = '#00cc00';
+            showMessage("LIZARD!");
+        }
+        loadInput.value = "";
+        return;
+    }
+
+    if (code === 'revert' || code === 'undo') {
+        if (state.eggMode) {
+            state.eggMode = null;
+            COLORS = [...originalColors];
+            showMessage("REVERTED!");
+        }
+        loadInput.value = "";
         return;
     }
 
