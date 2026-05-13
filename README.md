@@ -13,8 +13,10 @@
   - 💣 **Bomb (4-Match)**: Creates a blast that clears all surrounding gems.
   - 🌟 **Wildcard (5-Match)**: A powerful gem that clears every instance of a specific color when swapped.
   - 💥 **Board Clear (6+ Match)**: A massive explosion that destroys all gems on the screen for a massive bonus.
-  - ⚡ **Bomb Combo (2+ Bombs in Match)**: Clears the entire row or column for a strategic line clear.
-  - 🔥 **Cross Combo (Multi-Color Bomb Match)**: Clears both the row and column for each bomb involved!
+   - ⚡ **Bomb Combo (2+ Bombs in Match)**: Clears the entire row or column for a strategic line clear.
+   - 🔥 **Cross Combo (Multi-Color Bomb Match)**: Clears both the row and column for each bomb involved!
+   - 🔲 **L/T Shape Match**: Form an L or T pattern with intersecting horizontal and vertical runs to clear the entire row and column at the intersection!
+   - 🔷 **Square Match (2×2 Block)**: Create a 2×2 block of matching gems for a bonus score!
 - **Obstacle Mechanics**: 
   - 🪨 **Rocks (Level 12+)**: Unmatchable gems that drop dynamically.
   - 🔨 **Rock Smashing**: Destroying rocks awards **750 points** (single) or **1,250 points** per rock (multiple).
@@ -22,6 +24,7 @@
 - **Utility Features**:
   - 💾 **Retro Save System**: Generate and load string-based seed codes to save your exact score, moves, and level progress.
   - 💡 **Hint System**: Highlights an available match when you get stuck.
+  - 💾 **Auto-Save**: Progress automatically saves to the browser's local storage after every turn — your game persists across refreshes and tab closes.
 - **Premium Visuals**: 
   - Glassmorphic UI panels and dynamic pop-ups.
   - Smooth particle effects and gem animations.
@@ -46,6 +49,8 @@
    - Match **6+ gems** to trigger a full **Board Clear**.
    - Include **2+ Bombs** in a match for a **Bomb Combo** (Line Clear).
    - Complete **2 Matches** with different colored bombs for a **Cross Combo** (Cross Clear).
+   - Form an **L or T shape** with intersecting horizontal and vertical matches for a row + column clear.
+   - Create a **2×2 square** of matching gems for bonus points.
 5. **Obstacles & Scoring**: Starting at Level 12, **Rocks** will occasionally fall. They cannot be matched! Destroy them with Bombs or combos for huge bonuses:
    - **1 Rock**: 750 pts.
    - **Multiple Rocks**: 1,250 pts each!

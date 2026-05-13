@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Gem Match - Mother's Day Update</title>
+    <title>Gem Match - Shapes Update</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="style.css">
 </head>
@@ -61,15 +61,25 @@
                 class="px-8 py-3 bg-indigo-600 hover:bg-indigo-500 transition-colors text-white rounded-full font-bold shadow-lg">OK</button>
         </div>
 
+        <div id="disclaimer-box">
+            <p class="text-slate-800 mb-6 text-xl">
+                <b>Auto-save on!</b><br>Progress loads on refresh until you clear history.
+            </p>
+            <button id="disclaimer-ok-btn" type="button"
+                class="px-8 py-3 bg-indigo-600 hover:bg-indigo-500 transition-colors text-white rounded-full font-bold shadow-lg">OK</button>
+        </div>
+
         <div id="overlay">
             <h1 id="overlay-title" class="text-5xl font-black mb-4 tracking-tighter text-center px-4">GEM MATCH<br><span
-                    class="text-indigo-500">Mother's Day Update</span></h1>
+                    class="text-indigo-500">Shapes Update</span></h1>
             <p id="overlay-desc" class="text-slate-400 mb-8 text-center max-w-sm px-4 text-xs leading-relaxed">
                 <b>3 Matches:</b> Clears gems<br>
                 <b>4 Matches:</b> Creates a Bomb!<br>
                 <b>5 Matches:</b> Creates a Wildcard!<br>
                 <b>Bomb Combo (2 Bombs):</b> Clears a whole line!<br>
                 <b>Cross Combo (2+ Bombs):</b> Clears a Row & Column!<br>
+                <b>L/T Shape:</b> Clears intersecting Row & Column!<br>
+                <b>Square Match:</b> 2×2 block bonus!<br>
                 <b>Rock Smasher:</b> 750 / 1250 bonus pts per Rock!<br>
                 <b>Rocks:</b> Unmatchable obstacles (Lvl 12+).<br>
                 <b>Scaling:</b> Rocks increase every 10 levels after 25.<br>
