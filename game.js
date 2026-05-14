@@ -24,6 +24,8 @@ const hintBtn = document.getElementById('hint-btn');
 const saveBtn = document.getElementById('save-btn');
 const loadBtn = document.getElementById('load-btn');
 const loadInput = document.getElementById('load-input');
+const progressFill = document.getElementById('progress-fill');
+const progressText = document.getElementById('progress-text');
 
 // 📏 2. GAME RULES AND SETTINGS
 // We decide how big the game board is, how many different gems there are,
@@ -707,6 +709,7 @@ function createParticles(x, y, color) {
 function updateScore(pts) {
     state.score += pts;
     scoreEl.innerText = state.score;
+    updateProgressBar();
     let leveledUp = false;
     let hitLevel12 = false;
 
@@ -739,6 +742,14 @@ function updateScore(pts) {
             showMessage("LEVEL UP!");
         }
     }
+}
+
+function updateProgressBar() {
+    const levelStart = state.level === 1 ? 0 : state.goal - 3000;
+    const levelRange = state.level === 1 ? state.goal : 3000;
+    const pct = Math.min(1, Math.max(0, (state.score - levelStart) / levelRange));
+    progressFill.style.width = `${pct * 100}%`;
+    progressText.innerText = `${state.score - levelStart} / ${levelRange}`;
 }
 
 // 💬 13. POP-UP MESSAGES
@@ -806,6 +817,7 @@ function loadFromStorage() {
         movesEl.innerText = state.moves;
         levelEl.innerText = state.level;
         goalEl.innerText = state.goal;
+        updateProgressBar();
         state.gameStarted = true;
         overlay.style.display = "none";
         return true;
@@ -895,6 +907,7 @@ startBtn.addEventListener('click', () => {
     state.score = 0; state.moves = 20; state.level = 1; state.goal = 2500;
     state.gameStarted = true;
     scoreEl.innerText = "0"; movesEl.innerText = "20"; levelEl.innerText = "1"; goalEl.innerText = "2500";
+    updateProgressBar();
     overlay.style.display = "none";
     initGrid();
     document.getElementById('disclaimer-box').classList.add('show');
@@ -1134,6 +1147,7 @@ loadBtn.addEventListener('click', () => {
             scoreEl.innerText = state.score;
             movesEl.innerText = state.moves;
             goalEl.innerText = state.goal;
+            updateProgressBar();
 
             state.gameStarted = true;
             overlay.style.display = "none";
