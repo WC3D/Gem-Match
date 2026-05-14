@@ -204,7 +204,8 @@ function drawGem(r, c, type, power, xOffset = 0, yOffset = 0, scale = 1, alpha =
     }
 
     let skipShape = (state.eggMode === 'duck' && (type === 3 || type === 6)) ||
-        (state.eggMode === 'lizard' && type === 1);
+        (state.eggMode === 'lizard' && type === 1) ||
+        (state.eggMode === 'america' && type === 6);
 
     if (!skipShape) {
         ctx.fillStyle = COLORS[type];
@@ -266,6 +267,13 @@ function drawGem(r, c, type, power, xOffset = 0, yOffset = 0, scale = 1, alpha =
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.fillText('🦎', 0, 0);
+        }
+    } else if (state.eggMode === 'america') {
+        if (type === 6) {
+            ctx.font = `${Math.floor(state.cellSize * 0.55)}px serif`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('⭐', 0, 0);
         }
     }
 
@@ -1079,7 +1087,8 @@ loadBtn.addEventListener('click', () => {
     }
 
     if (code === 'America' || code === 'merica' || code === 'murica') {
-        COLORS = ['#ef4444', '#ffffff', '#3b82f6', '#8c1b1bff', '#ffffff', '#0c008fff', '#475569'];
+        COLORS = ['#ef4444', '#ffffff', '#000080', '#dc2626', '#ffffff', '#3b82f6', '#475569'];
+        state.eggMode = 'america';
         loadInput.value = "";
         showMessage("'MURICA!");
         return;
